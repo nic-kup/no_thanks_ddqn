@@ -6,7 +6,7 @@ import numpy.random as npr
 import jax.numpy as jnp
 import jax.random as jr
 from jax import jit, grad
-from jax.tree_util import tree_map
+from jax.tree_util import tree_map, tree_flatten
 from jax.experimental import optimizers
 from jax.experimental.stax import (
     serial,
@@ -18,6 +18,7 @@ from jax.experimental.stax import (
 )
 
 from game import NoThanks
+from model import init_random_params, predict
 
 SEED = 4
 key = jr.PRNGKey(SEED)
@@ -35,41 +36,6 @@ def hard_max(x, axis=-1):
     return 1.0 - jnp.sign(jnp.max(x, axis=axis).reshape((-1, 1)) - x)
 
 
-def Dueling():
-    """Combining value and action via dueling architecture."""
-    init_fun = lambda rng, input_shape: (input_shape[-1], ())
-
-    @jit
-    def apply_fun(params, inputs, **kwargs):
-        discounted_action = inputs[1] - jnp.max(inputs[1], axis=-1).reshape((-1, 1))
-        return inputs[0] + discounted_action
-
-    return init_fun, apply_fun
-
-
-# Try using my conv and splitting card / token from player states
-# FanOut an parallel as dualistic agent
-init_random_params, predict = serial(
-    Dense(300),
-    LeakyRelu,
-    Dense(600),
-    LeakyRelu,
-    Dense(400),
-    LeakyRelu,
-    FanOut(2),
-    parallel(Dense(200), Dense(200)),
-    parallel(LeakyRelu, LeakyRelu),
-    parallel(Dense(50), Dense(50)),
-    parallel(LeakyRelu, LeakyRelu),
-    parallel(Dense(4), Dense(8)),
-    parallel(LeakyRelu, LeakyRelu),
-    parallel(Dense(1), Dense(2)),
-    parallel(Sigmoid, Sigmoid),
-    Dueling(),
-)
-
-predict = jit(predict)
-
 opt_init, opt_update, get_params = optimizers.adam(STEP_SIZE)
 adam_step = 0
 _, params = init_random_params(sbkey, (-1, input_size))
@@ -77,7 +43,7 @@ key, sbkey = jr.split(key)
 
 opt_state = opt_init(params)
 
-EPOCHS = 71
+EPOCHS = 81
 
 experiences = []
 game_going = 1
@@ -163,7 +129,7 @@ old_params = get_params(opt_state)
 
 print("Start training")
 for epoch in range(EPOCHS):
-    eps = 1.0 / (3 * (epoch + 1))
+    eps = 2.0 / (2.0 * (epoch + 2))
     params = get_params(opt_state)
     new_exp = []
 
@@ -217,7 +183,7 @@ for epoch in range(EPOCHS):
 
     new_exp = list(filter(lambda x: len(x) == 5, new_exp))
     experiences = random.sample(
-        experiences, k=min(len(experiences), 20000 - len(new_exp))
+        experiences, k=min(len(experiences), 32768 - len(new_exp))
     )
     experiences = experiences + new_exp
 
@@ -280,6 +246,6 @@ for x in mygame.get_player_state_perspective():
     print(x[0])
     print(*x[1:])
 
-# leaves, treedef = tree_util.tree_flatten(params)
+leaves, treedef = tree_flatten(params)
 
-# jnp.savez("params", leaves, dtype=object)
+jnp.savez("params", *leaves)
