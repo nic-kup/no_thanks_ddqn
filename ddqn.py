@@ -8,14 +8,6 @@ import jax.random as jr
 from jax import jit, grad
 from jax.tree_util import tree_map, tree_flatten
 from jax.experimental import optimizers
-from jax.experimental.stax import (
-    serial,
-    Sigmoid,
-    Dense,
-    LeakyRelu,
-    parallel,
-    FanOut,
-)
 
 from game import NoThanks
 from model import init_random_params, predict
@@ -28,17 +20,18 @@ STEP_SIZE = 0.001
 
 mygame = NoThanks(4, 11)
 mygame.start_game()
-input_size = len(mygame.get_things())
+INPUT_SIZE = len(mygame.get_things())
 
 
 @jit
 def hard_max(x, axis=-1):
+    """returns 1.0 at max and 0.0 else"""
     return 1.0 - jnp.sign(jnp.max(x, axis=axis).reshape((-1, 1)) - x)
 
 
 opt_init, opt_update, get_params = optimizers.adam(STEP_SIZE)
 adam_step = 0
-_, params = init_random_params(sbkey, (-1, input_size))
+_, params = init_random_params(sbkey, (-1, INPUT_SIZE))
 key, sbkey = jr.split(key)
 
 opt_state = opt_init(params)
@@ -49,44 +42,44 @@ experiences = []
 game_going = 1
 
 
-def sample_from(experience_list, predict, params, old_params, k=32):
+def sample_from(experience_list, predict_fun, params, old_params, k=32):
     """Batch from experiences for DDQN"""
     sample = random.sample(experience_list, k=k)
 
-    s = jnp.array([x[0] for x in sample])
-    a = jnp.array([(1 - x[1], x[1]) for x in sample])
+    state = jnp.array([x[0] for x in sample])
+    action = jnp.array([(1 - x[1], x[1]) for x in sample])
 
-    r = jnp.array([x[2] for x in sample])
-    sp = jnp.array(np.array([x[3] for x in sample]))
-    f = jnp.array([x[4] for x in sample]).reshape((-1, 1))
+    reward = jnp.array([x[2] for x in sample])
+    state_p = jnp.array(np.array([x[3] for x in sample]))
+    final = jnp.array([x[4] for x in sample]).reshape((-1, 1))
 
-    x = predict(params, sp)
+    x = predict_fun(params, state_p)
     arg_x = hard_max(x)
 
-    x_target = predict(old_params, sp)
+    x_target = predict_fun(old_params, state_p)
 
-    target = r + jnp.sum(x_target * arg_x * f, axis=-1)
+    target = reward + jnp.sum(x_target * arg_x * final, axis=-1)
 
-    return s, a, target
+    return state, action, target
 
 
-def sample_all(experiences, predict, params, old_params):
+def sample_all(experiences, predict_fun, params, old_params):
     """Huge sample using all experiences for DDQN"""
-    s = jnp.array([x[0] for x in experiences])
-    a = jnp.array([(1 - x[1], x[1]) for x in experiences])
+    state = jnp.array([x[0] for x in experiences])
+    action = jnp.array([(1 - x[1], x[1]) for x in experiences])
 
-    r = jnp.array([x[2] for x in experiences])
-    sp = jnp.array([x[3] for x in experiences])
-    f = jnp.array([x[4] for x in experiences]).reshape((-1, 1))
+    reward = jnp.array([x[2] for x in experiences])
+    state_p = jnp.array([x[3] for x in experiences])
+    final = jnp.array([x[4] for x in experiences]).reshape((-1, 1))
 
-    x = predict(params, sp)
+    x = predict_fun(params, state_p)
     arg_x = hard_max(x)
 
-    x_target = predict(old_params, sp)
+    x_target = predict_fun(old_params, state_p)
 
-    target = r + jnp.sum(x_target * arg_x * f, axis=-1)
+    target = reward + jnp.sum(x_target * arg_x * final, axis=-1)
 
-    return s, a, target
+    return state, action, target
 
 
 @jit
@@ -119,6 +112,7 @@ def exp_mov_average(tree1, tree2, alpha=0.9):
 
 
 def num_games(ep):
+    """Number of games to play in given epoch"""
     if ep < 10:
         return 24
     return 8

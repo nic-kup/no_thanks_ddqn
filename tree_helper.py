@@ -1,3 +1,4 @@
+"""Contains functions for modifying trees"""
 from jax import jit, tree_map
 import jax.numpy as jnp
 
