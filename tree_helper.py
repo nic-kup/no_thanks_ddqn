@@ -18,6 +18,7 @@ def update_step(
     t, step_size, cur_x, grad, momentum, square_weight, beta1=0.9, beta2=0.999
 ):
     """Aam update step"""
+    x_out = tree_map(lambda x: x * (1-step_size *0.5), cur_x)
     momentum = tree_map(lambda x, y: beta1 * x + (1 - beta1) * y, momentum, grad)
     square_grad = tree_map(jnp.square, grad)
     square_weight = tree_map(
@@ -28,7 +29,7 @@ def update_step(
 
     step_hat = step_size * jnp.sqrt(1 - beta2 ** t) / (1 - beta1 ** t)
     x_out = tree_map(
-        lambda x, y, z: x - step_hat * y / (z + 1e-09), cur_x, momentum, abs_hat
+        lambda x, y, z: x - step_hat * y / (z + 1e-09), x_out, momentum, abs_hat
     )
 
     return x_out, momentum, square_weight

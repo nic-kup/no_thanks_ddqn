@@ -1,5 +1,5 @@
 """Contains the model"""
-from jax.experimental.stax import (
+from jax.example_libraries.stax import (
     serial,
     Sigmoid,
     Dense,

@@ -7,7 +7,7 @@ import jax.numpy as jnp
 import jax.random as jr
 from jax import jit, grad
 from jax.tree_util import tree_map, tree_flatten
-from jax.experimental import optimizers
+from jax.example_libraries import optimizers
 
 from game import NoThanks
 from model import init_random_params, predict
