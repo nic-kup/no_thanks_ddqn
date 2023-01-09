@@ -38,21 +38,21 @@ print(predict(params, mygame.get_things()).ravel())
 
 if __name__ == "__main__":
 
-# Initialize pygame
+    # Initialize pygame
     pygame.display.init()
     DISP_SIZE = (1280, 720)
 
-# Initialize Screen
+    # Initialize Screen
     rect = np.array([0, 0, DISP_SIZE[0], DISP_SIZE[1]])
     screen = pygame.display.set_mode(DISP_SIZE)
     pygame.display.set_caption("No Thanks!")
 
-# Initialize Font
+    # Initialize Font
     pygame.font.init()
     helvetica_path = pygame.font.match_font("helvetica")
     font = pygame.font.Font(helvetica_path, 14)
 
-# Initialize Objects
+    # Initialize Objects
     no_thanks_button = TextButton((390, 570), (200, 80), "No Thanks!")
     take_button = TextButton((690, 570), (200, 80), "Take!")
     buttons = [no_thanks_button, take_button]
@@ -60,18 +60,18 @@ if __name__ == "__main__":
     for but in buttons:
         but.screen = screen
         but.font = font
-    
+
     RUNNING = True
     while RUNNING:
         screen.fill((245, 250, 245))
-        
+
         pos = pygame.mouse.get_pos()
         mouse_press = pygame.mouse.get_pressed()[0] != 0
 
         # Button Loop
         for but in buttons:
             but.hover = but.mouse_in_box(pos)
-            but.down = (mouse_press and but.hover)
+            but.down = mouse_press and but.hover
             but.draw()
 
         # Event loop
@@ -88,9 +88,8 @@ if __name__ == "__main__":
                     if but.mouse_in_box(pos):
                         print(but.text)
 
-
         pygame.display.update()
-        #pygame.event.clear()
+        # pygame.event.clear()
 
     pygame.quit()
     exit()

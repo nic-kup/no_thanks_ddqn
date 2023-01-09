@@ -10,15 +10,16 @@ def tree_square_sum(x):
 
 @jit
 def tree_zeros_like(x):
-    return tree_map(lambda x: x * 0, x)
+    return tree_map(lambda x: x * 0.0, x)
 
 
 @jit
 def update_step(
-    t, step_size, cur_x, grad, momentum, square_weight, beta1=0.9, beta2=0.999
+    adam_step, step_size, cur_x, grad, momentum, square_weight, beta1=0.9, beta2=0.999
 ):
+    t = adam_step + 1
     """Aam update step"""
-    x_out = tree_map(lambda x: x * (1-step_size *0.5), cur_x)
+    x_out = tree_map(lambda x: x * (1 - step_size * 0.5), cur_x)
     momentum = tree_map(lambda x, y: beta1 * x + (1 - beta1) * y, momentum, grad)
     square_grad = tree_map(jnp.square, grad)
     square_weight = tree_map(
@@ -27,7 +28,7 @@ def update_step(
 
     abs_hat = tree_map(jnp.sqrt, square_weight)
 
-    step_hat = step_size * jnp.sqrt(1 - beta2 ** t) / (1 - beta1 ** t)
+    step_hat = step_size * jnp.sqrt(1 - beta2**t) / (1 - beta1**t)
     x_out = tree_map(
         lambda x, y, z: x - step_hat * y / (z + 1e-09), x_out, momentum, abs_hat
     )

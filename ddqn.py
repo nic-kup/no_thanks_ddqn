@@ -1,85 +1,37 @@
 """A Dueling DDQN learning to play no_thanks"""
 import random
-import numpy as np
 import numpy.random as npr
 
 import jax.numpy as jnp
 import jax.random as jr
 from jax import jit, grad
 from jax.tree_util import tree_map, tree_flatten
-from jax.example_libraries import optimizers
 
 from game import NoThanks
+from tree_helper import update_step, tree_zeros_like
 from model import init_random_params, predict
+from sample_helpers import sample_from, sample_all
 
 SEED = 4
 key = jr.PRNGKey(SEED)
 key, sbkey = jr.split(key)
 
-STEP_SIZE = 0.001
+STEP_SIZE = 3e-4
 
 mygame = NoThanks(4, 11)
 mygame.start_game()
 INPUT_SIZE = len(mygame.get_things())
 
 
-@jit
-def hard_max(x, axis=-1):
-    """returns 1.0 at max and 0.0 else"""
-    return 1.0 - jnp.sign(jnp.max(x, axis=axis).reshape((-1, 1)) - x)
-
-
-opt_init, opt_update, get_params = optimizers.adam(STEP_SIZE)
 adam_step = 0
 _, params = init_random_params(sbkey, (-1, INPUT_SIZE))
 key, sbkey = jr.split(key)
 
-opt_state = opt_init(params)
 
-EPOCHS = 81
+EPOCHS = 46
 
 experiences = []
 game_going = 1
-
-
-def sample_from(experience_list, predict_fun, params, old_params, k=32):
-    """Batch from experiences for DDQN"""
-    sample = random.sample(experience_list, k=k)
-
-    state = jnp.array([x[0] for x in sample])
-    action = jnp.array([(1 - x[1], x[1]) for x in sample])
-
-    reward = jnp.array([x[2] for x in sample])
-    state_p = jnp.array(np.array([x[3] for x in sample]))
-    final = jnp.array([x[4] for x in sample]).reshape((-1, 1))
-
-    x = predict_fun(params, state_p)
-    arg_x = hard_max(x)
-
-    x_target = predict_fun(old_params, state_p)
-
-    target = reward + jnp.sum(x_target * arg_x * final, axis=-1)
-
-    return state, action, target
-
-
-def sample_all(experiences, predict_fun, params, old_params):
-    """Huge sample using all experiences for DDQN"""
-    state = jnp.array([x[0] for x in experiences])
-    action = jnp.array([(1 - x[1], x[1]) for x in experiences])
-
-    reward = jnp.array([x[2] for x in experiences])
-    state_p = jnp.array([x[3] for x in experiences])
-    final = jnp.array([x[4] for x in experiences]).reshape((-1, 1))
-
-    x = predict_fun(params, state_p)
-    arg_x = hard_max(x)
-
-    x_target = predict_fun(old_params, state_p)
-
-    target = reward + jnp.sum(x_target * arg_x * final, axis=-1)
-
-    return state, action, target
 
 
 @jit
@@ -95,13 +47,6 @@ dloss = jit(grad(loss))
 
 
 @jit
-def update(step, opt_state, batch, key=None):
-    """Simple update using jax optimizer"""
-    params = get_params(opt_state)
-    return opt_update(step, dloss(params, batch, key), opt_state)
-
-
-@jit
 def exp_mov_average(tree1, tree2, alpha=0.9):
     """Caluclates the EMA of parameters"""
     return tree_map(
@@ -111,25 +56,38 @@ def exp_mov_average(tree1, tree2, alpha=0.9):
     )
 
 
+@jit
+def sq_distance(tree1, tree2):
+    """A distance between parameters for tracking change"""
+    return sum(
+        tree_flatten(
+            tree_map(
+                lambda x, y: jnp.square(x - y),
+                tree1,
+                tree2,
+            )
+        )[0]
+    )
+
+
 def num_games(ep):
     """Number of games to play in given epoch"""
     if ep < 10:
-        return 24
-    return 8
+        return 12
+    return 4
 
 
-old_params = get_params(opt_state)
-
+adam_step = 0
+momentum = tree_zeros_like(params)
+square_weight = tree_zeros_like(params)
+old_params = params.copy()
 
 print("Start training")
 for epoch in range(EPOCHS):
-    eps = 2.0 / (2.0 * (epoch + 2))
-    params = get_params(opt_state)
+    eps = 2.0 / (2.0 * (epoch + 2.0))
     new_exp = []
 
-    old_params = exp_mov_average(old_params, params, 0.8)
-    if epoch % 3 == 0:
-        old_params = params
+    old_params = exp_mov_average(old_params, params, 0.7)
 
     for _ in range(num_games(epoch)):
         mygame = NoThanks(4, 11)
@@ -181,23 +139,23 @@ for epoch in range(EPOCHS):
     )
     experiences = experiences + new_exp
 
-    adam_step = 0
-
-    for _ in range(1024):
+    for _ in range(2048):
         """Gradient Descent"""
         batch = sample_from(experiences, predict, params, old_params, k=128)
-        opt_state = update(adam_step, opt_state, batch, sbkey)
+        grad = dloss(params, batch, sbkey)
+        params, momentum, square_weight = update_step(
+            adam_step, STEP_SIZE, params, grad, momentum, square_weight
+        )
         key, sbkey = jr.split(key)
         adam_step += 1
-        # old_params = exp_mov_average(old_params, params, 0.99)
 
     if epoch % 5 == 0:
         big_batch = sample_all(experiences, predict, params, old_params)
-        game_loss = jnp.mean(loss(get_params(opt_state), big_batch, sbkey))
+        game_loss = jnp.mean(loss(params, big_batch, sbkey))
         key, sbkey = jr.split(key)
 
         print(
-            f"{epoch:<4.0f}:  Loss: {game_loss:<9.4f} counter: {mygame.get_counter():<4} exp_len: {len(experiences)}"
+            f"{epoch:<4.0f}:  Loss: {game_loss:<9.4f} counter: {mygame.get_counter():<4} exp_len: {len(experiences)}"  # sq_dist: {sq_distance(params, old_params)}"
         )
 
 
@@ -205,7 +163,6 @@ print("example game")
 
 mygame = NoThanks(4, 11)
 mygame.start_game()
-params = get_params(opt_state)
 game_going = 1
 experiences = []
 

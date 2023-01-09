@@ -27,22 +27,31 @@ class TextButton:
         """Draw the button"""
         if self.down:
             pygame.draw.rect(
-                self.screen, down_red, pygame.Rect(self.loc_x, self.loc_y, self.length, self.height)
+                self.screen,
+                down_red,
+                pygame.Rect(self.loc_x, self.loc_y, self.length, self.height),
             )
         elif self.hover:
             pygame.draw.rect(
-                self.screen, hover_red, pygame.Rect(self.loc_x, self.loc_y, self.length, self.height)
+                self.screen,
+                hover_red,
+                pygame.Rect(self.loc_x, self.loc_y, self.length, self.height),
             )
         else:
             pygame.draw.rect(
-                self.screen, mid_red, pygame.Rect(self.loc_x, self.loc_y, self.length, self.height)
+                self.screen,
+                mid_red,
+                pygame.Rect(self.loc_x, self.loc_y, self.length, self.height),
             )
         text_size = self.font.size(self.text)
         my_text = self.font.render(self.text, True, black)
-        self.screen.blit(my_text, (
-            self.loc_x + 0.5 * (self.length - text_size[0]),
-            self.loc_y + 0.5 * (self.height - text_size[1]),
-            ))
+        self.screen.blit(
+            my_text,
+            (
+                self.loc_x + 0.5 * (self.length - text_size[0]),
+                self.loc_y + 0.5 * (self.height - text_size[1]),
+            ),
+        )
         self.down = False
         self.hover = False
 

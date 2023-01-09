@@ -2,6 +2,7 @@ import pygame
 
 card_white = pygame.Color(220, 210, 214)
 
+
 class Cards:
     """Playing cards with numbers on them"""
 
