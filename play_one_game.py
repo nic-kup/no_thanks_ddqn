@@ -14,7 +14,7 @@ def single_game(predict, params, eps):
 
     while game_going:
         cur_player = mygame.player_turn
-        state = mygame.get_things()
+        state = mygame.get_things() # Get game state (from Ps perspective)
         q_vals = predict(params, state).ravel()
 
         new_exp.append([*player_store[cur_player], state, 1.0])
@@ -35,6 +35,7 @@ def single_game(predict, params, eps):
                 player_store[cur_player] = (state, 1, reward)
 
     winner = mygame.winning()
+    # Give each player final experience so they see loss
     for player in range(mygame.n_players):
         new_exp.append(
             [

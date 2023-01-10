@@ -2,6 +2,7 @@
 import random
 import numpy.random as npr
 
+import numpy as np
 import jax.numpy as jnp
 import jax.random as jr
 from jax import jit, grad
@@ -30,7 +31,7 @@ _, params = init_random_params(sbkey, (-1, INPUT_SIZE))
 key, sbkey = jr.split(key)
 
 
-EPOCHS = 151
+EPOCHS = 101
 
 experiences = []
 game_going = 1
@@ -99,11 +100,13 @@ for epoch in range(EPOCHS):
     
     # List mgmt
     new_exp = [item for sublist in list_of_new_exp for item in sublist]
-    
-    # Randomly delete old exps when list of experiences is to long
-    experiences = random.sample(
-        experiences, k=min(len(experiences), 32768 - len(new_exp))
-    )
+
+    # Randomly delete old exps with bias relative to reward
+    if len(experiences)+len(new_exp) >= 32768:
+        priorities = np.array([0.5 + exper[2] for exper in experiences])
+        priorities /= sum(priorities)
+        indices = npr.choice(len(experiences), 32768 - len(new_exp), p = priorities)
+        experiences = [experiences[idx] for idx in indices]
     experiences = experiences + new_exp
 
     for _ in range(64):
