@@ -9,6 +9,11 @@ def tree_square_sum(x):
 
 
 @jit
+def convex_comb(a, b, t):
+    return tree_map(lambda x, y: (1 - t) * x + t * y, a, b)
+
+
+@jit
 def tree_zeros_like(x):
     return tree_map(lambda x: x * 0.0, x)
 
@@ -20,7 +25,7 @@ def update_step(
     t = adam_step + 1
     """Aam update step"""
     x_out = tree_map(lambda x: x * (1 - step_size * 0.5), cur_x)
-    momentum = tree_map(lambda x, y: beta1 * x + (1 - beta1) * y, momentum, grad)
+    momentum = convex_comb(grad, momentum, beta1)
     square_grad = tree_map(jnp.square, grad)
     square_weight = tree_map(
         lambda x, y: beta2 * x + (1 - beta2) * y, square_weight, square_grad
@@ -34,3 +39,17 @@ def update_step(
     )
 
     return x_out, momentum, square_weight
+
+
+@jit
+def lion_step(step_size, cur_x, grad, momentum, beta1=0.9, beta2=0.99, wd=5.0):
+    # Mix with momentum
+    update = convex_comb(grad, momentum, beta1)
+    # Update momentum
+    momentum = convex_comb(grad, momentum, beta2)
+    # Take the sign
+    update = tree_map(jnp.sign, update)
+    weight_decay = tree_map(lambda x: x * wd, cur_x)
+    update = tree_map(lambda x, y: x + y, update, weight_decay)
+    update = tree_map(lambda x: x * step_size, update)
+    return tree_map(lambda x, y: x - y, cur_x, update), momentum

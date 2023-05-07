@@ -13,7 +13,7 @@ class NoThanks:
         low_card=3,
         high_card=35,
         removed_cards=9,
-        reward_factor=0.0,
+        reward_factor=1.0,
     ):
         """Initialization"""
         self.n_players = n_players
@@ -68,29 +68,39 @@ class NoThanks:
         one_hot[self.center_card - self.low_card] = 1.0
         return one_hot
 
-    def take_card(self):
+    def take_card(self, punish=False):
         """current player takes center card"""
         self.no_take_counter -= 1
-        reward = (self.center_tokens - self.center_card) * self.reward_factor
+        reward = 0.0
+
+        old_score = self.score_single(self.player_state[self.player_turn])
+
+        self.player_state[self.player_turn][self.center_card - self.low_card + 1] = 1
         self.player_state[self.player_turn][0] += self.center_tokens
         self.center_tokens = 0
-        self.player_state[self.player_turn][self.center_card - self.low_card + 1] = 1
 
+        new_score = self.score_single(self.player_state[self.player_turn])
+
+        # Lower score is better, higher reward is better
+        reward = old_score - new_score
+
+        reward *= self.reward_factor
         self.true_turn += 1
 
         if len(self.cards) == 0:
             # Check if we end the game
-            return (0, reward)
+            return (0, reward - punish)
 
         self.center_card = self.cards.pop()
-        return (1, reward)
+        return (1, reward - punish)
 
     def no_thanks(self):
         """Current player no thanks"""
         self.no_take_counter += 1
+
+        # If you have no tokens you have to take the card
         if self.player_state[self.player_turn][0] == 0:
-            # If you have no cards you have to take the card
-            return self.take_card()
+            return self.take_card(True)
         self.player_state[self.player_turn][0] += -1
         self.center_tokens += 1
         self.turn += 1
@@ -106,10 +116,12 @@ class NoThanks:
 
     def winning(self):
         """Return winner"""
-        scores = [0] * self.n_players
+        scores = [0.0] * self.n_players
         inds = np.argsort(self.score())
-        scores[inds[0]] = 1.0
-        scores[inds[1]] = 0.3
+        scores[inds[0]] = 3.0
+        scores[inds[1]] = 1.0
+        scores[inds[2]] = -1.0
+        scores[inds[3]] = -2.0
         return scores
 
     def score_single(self, player):

@@ -2,9 +2,8 @@
 from sys import exit
 import numpy as np
 
-import jax.numpy as jnp
 import jax.random as jr
-from jax.tree_util import tree_map, tree_flatten, tree_unflatten
+from jax.tree_util import tree_flatten, tree_unflatten
 
 import pygame
 from game import NoThanks
