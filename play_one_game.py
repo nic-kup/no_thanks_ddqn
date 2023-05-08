@@ -70,23 +70,22 @@ def single_game_end_reward(predict, params, eps):
         if eps > npr.random():
             if npr.random() > 0.5:
                 game_going, reward = mygame.take_card()
-                player_store[cur_player] = (state, 0, cur_player)
+                player_store[cur_player] = (state, 0, reward)
             else:
                 game_going, reward = mygame.no_thanks()
-                player_store[cur_player] = (state, 1, cur_player)
+                player_store[cur_player] = (state, 1, reward)
         else:
             if q_vals[0] > q_vals[1]:
                 game_going, reward = mygame.take_card()
-                player_store[cur_player] = (state, 0, cur_player)
+                player_store[cur_player] = (state, 0, reward)
             else:
                 game_going, reward = mygame.no_thanks()
-                player_store[cur_player] = (state, 1, cur_player)
+                player_store[cur_player] = (state, 1, reward)
 
     winner = mygame.winning()
     # Give each player final experience so they see loss
     new_exp = list(filter(lambda x: len(x) == 5, new_exp))
-    for i, exper in enumerate(new_exp):
-        new_exp[i] = [exper[0], exper[1], winner[exper[2]], exper[3], exper[4]]
+
     for player in range(mygame.n_players):
         new_exp.append(
             [

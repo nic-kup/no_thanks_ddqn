@@ -28,20 +28,27 @@ def Dueling():
 def build_model():
     """Builds the Dueling DDQN model."""
     return serial(
-        Dense(1024),
-        LeakyRelu,
-        Dense(1024),
-        LeakyRelu,
-        Dense(1024),
-        LeakyRelu,
         Dense(512),
         LeakyRelu,
+        Dense(256),
+        LeakyRelu,
         FanOut(2),
-        parallel(Dense(512), Dense(512)),
+        parallel(Dense(64), Dense(64)),
         parallel(LeakyRelu, LeakyRelu),
-        parallel(Dense(128), Dense(128)),
-        parallel(LeakyRelu, LeakyRelu),
-        parallel(Dense(16), Dense(32)),
+        parallel(Dense(1), Dense(2)),
+        Dueling(),
+    )
+
+
+def build_model():
+    """Builds the Dueling DDQN model."""
+    return serial(
+        Dense(256),
+        LeakyRelu,
+        Dense(128),
+        LeakyRelu,
+        FanOut(2),
+        parallel(Dense(32), Dense(64)),
         parallel(LeakyRelu, LeakyRelu),
         parallel(Dense(1), Dense(2)),
         Dueling(),

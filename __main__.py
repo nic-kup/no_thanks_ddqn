@@ -22,11 +22,12 @@ if __name__ == "__main__":
     mygame.start_game()
     INPUT_SIZE = len(mygame.get_things())
 
-    adam_step = 0
+    print(f"Input size: {INPUT_SIZE}")
+
     _, params = init_random_params(sbkey, (-1, INPUT_SIZE))
     key, sbkey = jr.split(key)
 
-    EPOCHS = 31
+    EPOCHS = 100
     experiences = []
 
     @jit
@@ -84,26 +85,27 @@ if __name__ == "__main__":
     def play_games(predict, params, num_games, eps):
         """Play num_games games with given parameters and epsilon"""
         return Parallel(n_jobs=-1, backend="threading")(
-            delayed(single_game)(predict, params, eps, 0.03) for _ in range(num_games)
+            delayed(single_game)(predict, params, eps, 0.01) for _ in range(num_games)
         )
 
     # Main training loop
     print("Start training")
-    old_params = convex_comb(params.copy(), tree_zeros_like(params), 0.5)
+    old_params = tree_zeros_like(params)
     momentum = tree_zeros_like(params)
     eps = 0.01
     experiences = []
     for epoch in range(EPOCHS):
-        if epoch < 10:
+        if epoch < 15:
             eps = 0.03
-        elif epoch < 20:
+        elif epoch < 30:
             eps = 0.01
         else:
             eps = 0.002
 
-        # Move old parameters closer to new parameters
-        if epoch % 5 == 1:
-            old_params = tree_map(lambda x: 0.95 * x, params)
+        # Set old_params to params except in the beginning
+        if epoch % 10 == 1 and epoch > 2:
+            print("Reset old_params")
+            old_params = params.copy()
 
         # Play some games with `old_params` and `params`
         list_of_new_exp = play_games(predict, params, num_games(epoch), eps)
@@ -115,15 +117,14 @@ if __name__ == "__main__":
         experiences = experiences[:16384]
 
         # Gradient Descent
-        for _ in range(32):
+        for _ in range(128):
             batch = sample_from(experiences, k=128)
             grad = dloss(params, batch, sbkey)
             params, momentum = lion_step(STEP_SIZE, params, grad, momentum)
             key, sbkey = jr.split(key)
-            adam_step += 1
 
         # Print progress
-        if epoch % 5 == 0:
+        if epoch % 5 == 0 or epoch == EPOCHS - 1:
             big_batch = sample_all(experiences)
             game_loss = jnp.mean(loss(params, big_batch, sbkey))
             key, sbkey = jr.split(key)

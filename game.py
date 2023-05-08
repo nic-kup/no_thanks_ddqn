@@ -141,6 +141,7 @@ class NoThanks:
         """Get game state from cur_player perspective"""
         return np.concatenate(
             (
+                np.array(len(self.cards)).reshape(-1),
                 np.array(self.center_tokens).reshape(-1),
                 self.one_hot_center_card,
                 self.get_current_player_flat(),
@@ -151,6 +152,7 @@ class NoThanks:
         """Get game state from k's perspective"""
         return np.concatenate(
             (
+                np.array(len(self.cards)).reshape(-1),
                 np.array(self.center_tokens).reshape(-1),
                 self.one_hot_center_card,
                 self.get_player_state_flat(k),
