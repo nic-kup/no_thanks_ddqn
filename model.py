@@ -19,7 +19,7 @@ def Dueling():
 
     @jit
     def apply_fun(params, inputs, **kwargs):
-        discounted_action = inputs[1] - jnp.mean(inputs[1], axis=-1).reshape((-1, 1))
+        discounted_action = inputs[1] - jnp.max(inputs[1], axis=-1).reshape((-1, 1))
         return inputs[0] + discounted_action
 
     return init_fun, apply_fun
@@ -34,21 +34,6 @@ def build_model():
         LeakyRelu,
         FanOut(2),
         parallel(Dense(64), Dense(64)),
-        parallel(LeakyRelu, LeakyRelu),
-        parallel(Dense(1), Dense(2)),
-        Dueling(),
-    )
-
-
-def build_model():
-    """Builds the Dueling DDQN model."""
-    return serial(
-        Dense(256),
-        LeakyRelu,
-        Dense(128),
-        LeakyRelu,
-        FanOut(2),
-        parallel(Dense(32), Dense(64)),
         parallel(LeakyRelu, LeakyRelu),
         parallel(Dense(1), Dense(2)),
         Dueling(),

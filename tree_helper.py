@@ -4,26 +4,29 @@ import jax.numpy as jnp
 
 
 @jit
-def tree_square_sum(x):
-    return sum(tree_map(jnp.sum, tree_map(jnp.square, x)))
+def tree_square_sum(weights):
+    """Returns the sum of the squares of a jax-tree"""
+    return sum(tree_map(jnp.sum, tree_map(jnp.square, weights)))
 
 
 @jit
-def convex_comb(a, b, t):
-    return tree_map(lambda x, y: (1 - t) * x + t * y, a, b)
+def convex_comb(tree_a, tree_b, t):
+    """Takes convex combination of two trees"""
+    return tree_map(lambda x, y: (1 - t) * x + t * y, tree_a, tree_b)
 
 
 @jit
-def tree_zeros_like(x):
-    return tree_map(lambda x: x * 0.0, x)
+def tree_zeros_like(weights):
+    """Returns a tree with same structure as given tree, but only 0"""
+    return tree_map(lambda x: x * 0.0, weights)
 
 
 @jit
 def update_step(
     adam_step, step_size, cur_x, grad, momentum, square_weight, beta1=0.9, beta2=0.999
 ):
+    """AdamW update step"""
     t = adam_step + 1
-    """Aam update step"""
     x_out = tree_map(lambda x: x * (1 - step_size * 0.5), cur_x)
     momentum = convex_comb(grad, momentum, beta1)
     square_grad = tree_map(jnp.square, grad)

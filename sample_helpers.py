@@ -1,3 +1,4 @@
+"""Helper functions to sample from list of experiences"""
 import random
 import numpy as np
 from jax import jit
@@ -10,19 +11,18 @@ def hard_max(x, axis=-1):
     return 1.0 - jnp.sign(jnp.max(x, axis=axis).reshape((-1, 1)) - x)
 
 
-def sample_direct(experience_list, predict_fun, params, k=32):
-    sample = random.sample(experience_list, k=k)
+def sample_sequentially(experience_list, k=32, j=0):
+    """Batch from experiences for DDQN"""
+    length = len(experience_list)
+    sample = experience_list[(j * k) % length : ((j + 1) * k) % length]
+
     state = jnp.array([x[0] for x in sample])
     action = jnp.array([(1 - x[1], x[1]) for x in sample])
     reward = jnp.array([x[2] for x in sample])
-    return state, action, reward
+    state_p = jnp.array(np.array([x[3] for x in sample]))
+    final = jnp.array([x[4] for x in sample]).reshape((-1, 1))
 
-
-def sample_all_direct(experience_list, predict_fun, params):
-    state = jnp.array([x[0] for x in experience_list])
-    action = jnp.array([(1 - x[1], x[1]) for x in experience_list])
-    reward = jnp.array([x[2] for x in experience_list])
-    return state, action, reward
+    return state, action, reward, state_p, final
 
 
 def sample_from(experience_list, k=32):

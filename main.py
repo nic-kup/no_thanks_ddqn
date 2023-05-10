@@ -5,7 +5,7 @@ from jax import jit, grad
 from jax.tree_util import tree_map, tree_flatten
 from joblib import Parallel, delayed
 from game import NoThanks
-from play_one_game import single_game
+from single_game import single_game
 from tree_helper import lion_step, tree_zeros_like
 from model import init_random_params, predict
 from sample_helpers import sample_from, sample_all
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     _, params = init_random_params(sbkey, (-1, INPUT_SIZE))
     key, sbkey = jr.split(key)
 
-    EPOCHS = 100
+    EPOCHS = 150
     experiences = []
 
     @jit
@@ -49,7 +49,7 @@ if __name__ == "__main__":
         ).squeeze()
 
         # Hardcoded 0.99 discount
-        target = r + 0.95 * done * old_next_q_values_sel
+        target = r + 0.96 * done * old_next_q_values_sel
 
         return jnp.mean(jnp.square(q_values - target))
 
@@ -77,38 +77,30 @@ if __name__ == "__main__":
             )[0]
         )
 
-    # Utility functions
-    def num_games(ep):
-        """Number of games to play in given epoch"""
-        return 50
-
-    def play_games(predict, params, num_games, eps):
+    def play_games(predict, params, num_games, inv_temp):
         """Play num_games games with given parameters and epsilon"""
         return Parallel(n_jobs=-1, backend="threading")(
-            delayed(single_game)(predict, params, eps, 0.01) for _ in range(num_games)
+            delayed(single_game)(predict, params, 0.01, inv_temp)
+            for _ in range(num_games)
         )
 
     # Main training loop
     print("Start training")
     old_params = tree_zeros_like(params)
     momentum = tree_zeros_like(params)
-    eps = 0.01
     experiences = []
+    inv_temp = 1
     for epoch in range(EPOCHS):
-        if epoch < 15:
-            eps = 0.03
-        elif epoch < 30:
-            eps = 0.01
-        else:
-            eps = 0.002
+        # Decrease randomness up to point
+        inv_temp = min(epoch, 30)
 
         # Set old_params to params except in the beginning
-        if epoch % 10 == 1 and epoch > 2:
+        if epoch % 15 == 1 and epoch > 2:
             print("Reset old_params")
             old_params = params.copy()
 
         # Play some games with `old_params` and `params`
-        list_of_new_exp = play_games(predict, params, num_games(epoch), eps)
+        list_of_new_exp = play_games(predict, params, 50, inv_temp)
         new_exp = [item for sublist in list_of_new_exp for item in sublist]
 
         print(len(new_exp))

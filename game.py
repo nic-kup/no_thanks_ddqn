@@ -118,8 +118,8 @@ class NoThanks:
         """Return winner"""
         scores = [0.0] * self.n_players
         inds = np.argsort(self.score())
-        scores[inds[0]] = 3.0
-        scores[inds[1]] = 1.0
+        scores[inds[0]] = 4.0
+        scores[inds[1]] = 2.0
         scores[inds[2]] = -1.0
         scores[inds[3]] = -2.0
         return scores
