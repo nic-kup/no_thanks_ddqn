@@ -1,6 +1,8 @@
 """A Dueling DDQN learning to play no_thanks"""
 import jax.numpy as jnp
 import jax.random as jr
+from jax.nn import sigmoid
+import numpy.random as npr
 from jax import jit, grad
 from jax.tree_util import tree_map, tree_flatten
 from joblib import Parallel, delayed
@@ -27,7 +29,8 @@ if __name__ == "__main__":
     _, params = init_random_params(sbkey, (-1, INPUT_SIZE))
     key, sbkey = jr.split(key)
 
-    EPOCHS = 150
+    EPOCHS = 100
+    MAX_INV_TEMP = 50
     experiences = []
 
     @jit
@@ -49,7 +52,7 @@ if __name__ == "__main__":
         ).squeeze()
 
         # Hardcoded 0.99 discount
-        target = r + 0.96 * done * old_next_q_values_sel
+        target = r + 0.97 * done * old_next_q_values_sel
 
         return jnp.mean(jnp.square(q_values - target))
 
@@ -64,19 +67,6 @@ if __name__ == "__main__":
             tree2,
         )
 
-    @jit
-    def sq_distance(tree1, tree2):
-        """A distance between parameters for tracking change"""
-        return sum(
-            tree_flatten(
-                tree_map(
-                    lambda x, y: jnp.square(x - y),
-                    tree1,
-                    tree2,
-                )
-            )[0]
-        )
-
     def play_games(predict, params, num_games, inv_temp):
         """Play num_games games with given parameters and epsilon"""
         return Parallel(n_jobs=-1, backend="threading")(
@@ -84,7 +74,9 @@ if __name__ == "__main__":
             for _ in range(num_games)
         )
 
-    # Main training loop
+    # |--------------------|
+    # | Main training loop |
+    # |--------------------|
     print("Start training")
     old_params = tree_zeros_like(params)
     momentum = tree_zeros_like(params)
@@ -92,12 +84,13 @@ if __name__ == "__main__":
     inv_temp = 1
     for epoch in range(EPOCHS):
         # Decrease randomness up to point
-        inv_temp = min(epoch, 30)
+        inv_temp = min(epoch, MAX_INV_TEMP)
 
         # Set old_params to params except in the beginning
-        if epoch % 15 == 1 and epoch > 2:
+        if epoch % 10 == 1 and epoch > 2:
             print("Reset old_params")
             old_params = params.copy()
+            # momentum = tree_zeros_like(params)
 
         # Play some games with `old_params` and `params`
         list_of_new_exp = play_games(predict, params, 50, inv_temp)
@@ -106,11 +99,11 @@ if __name__ == "__main__":
         print(len(new_exp))
 
         experiences = new_exp + experiences
-        experiences = experiences[:16384]
+        experiences = experiences[:30000]
 
         # Gradient Descent
         for _ in range(128):
-            batch = sample_from(experiences, k=128)
+            batch = sample_from(experiences, k=256)
             grad = dloss(params, batch, sbkey)
             params, momentum = lion_step(STEP_SIZE, params, grad, momentum)
             key, sbkey = jr.split(key)
@@ -148,9 +141,8 @@ if __name__ == "__main__":
         q_vals = predict(params, state).ravel()
 
         print("q_vals", q_vals)
-        experiences.append([*player_store[cur_player], jnp.max(q_vals)])
 
-        if q_vals[0] > q_vals[1]:
+        if sigmoid(MAX_INV_TEMP * (q_vals[0] - q_vals[1])) > npr.random():
             game_going, rew = mygame.take_card()
             player_store[cur_player] = (state, 0, q_vals[0])
             print(f"take: {rew}")

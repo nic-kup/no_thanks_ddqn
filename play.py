@@ -3,39 +3,37 @@ from sys import exit
 import numpy as np
 import numpy.random as npr
 
-import jax.random as jr
+from jax.nn import sigmoid
 from jax.tree_util import tree_flatten, tree_unflatten
+from jax.random import PRNGKey
+
+import time
 
 from game import NoThanks
 from model import predict, init_random_params
-
-SEED = 4
-key = jr.PRNGKey(SEED)
-key, sbkey = jr.split(key)
-
-# Initialize game
-mygame = NoThanks(4, 11)
-mygame.start_game()
-input_size = len(mygame.get_things())
 
 # Load parameters and create leaves
 npz_files = np.load("params.npz")
 leaves = [npz_files[npz_files.files[i]] for i in range(len(npz_files.files))]
 
+mygame = NoThanks(4, 11)
+mygame.start_game()
+input_size = len(mygame.get_things())
+
 # Get the right PyTree definition
-_, temp_params = init_random_params(sbkey, (-1, input_size))
+key = PRNGKey(1)
+_, temp_params = init_random_params(key, (-1, input_size))
 _, treedef = tree_flatten(temp_params)
 
 # Get parameters
 params = tree_unflatten(treedef, leaves)
 
-print("player tokens", mygame.player_state[mygame.player_turn][0])
-print("Center Card", mygame.center_card)
-print(predict(params, mygame.get_things()).ravel())
-
 
 def print_cards_from_one_hot(one_hot_of_cards):
-    print(" ".join(str(x) for x in [i + 3 for i, x in enumerate(one_hot_of_cards) if x == 1]))
+    return " ".join(
+        str(x) for x in [i + 3 for i, x in enumerate(one_hot_of_cards) if x == 1]
+    )
+
 
 if __name__ == "__main__":
     player_order = npr.randint(0, 4)
@@ -50,12 +48,43 @@ if __name__ == "__main__":
     ]
 
     while game_going:
+        print("-----")
         cur_player = mygame.player_turn
+        print(f"Player {cur_player}")
         state = mygame.get_things()
 
+        player_persp = mygame.get_current_player()[0]
+
         if cur_player == player_order:
-            print("Your turn!")
+            print(f"Center: Card {mygame.center_card} | Tokens {mygame.center_tokens}")
+            print(f"Tokens: {player_persp[0]}")
+            print(f"Cards {print_cards_from_one_hot(player_persp[1:])}")
+            if ("t" in input()):
+                game_going, rew, = mygame.take_card()
+                player_store[cur_player] = (state, 0, q_vals[0])
+            else:
+                game_going, rew = mygame.no_thanks()
+                player_store[cur_player] = (state, 1, q_vals[1])
         else:
-            print(f"Player {mygame.player_turn}")
-            print(f"Cards )
+            q_vals = predict(params, state).ravel()
+            player_persp = mygame.get_current_player()[0]
+            print(f"Center: Card {mygame.center_card} | Tokens {mygame.center_tokens}")
+            print(f"Tokens: {player_persp[0]}")
+            print(f"Cards {print_cards_from_one_hot(player_persp[1:])}")
+            if sigmoid(50 * (q_vals[0] - q_vals[1])) > npr.random():
+                game_going, rew, = mygame.take_card()
+                player_store[cur_player] = (state, 0, q_vals[0])
+            else:
+                game_going, rew = mygame.no_thanks()
+                player_store[cur_player] = (state, 1, q_vals[1])
+
+        time.sleep(0.5)
+
+    
+    print(mygame.score())
+    print(mygame.winning())
+
+    for x in mygame.get_player_state_perspective():
+        print(x[0])
+        print(print_cards_from_one_hot(x[1:]))
 

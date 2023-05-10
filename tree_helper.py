@@ -49,13 +49,16 @@ def lion_step(step_size, cur_x, grad, momentum, beta1=0.9, beta2=0.99, wd=5.0):
     """Applies lion optimzer step to weights given grad and momentum"""
     # Mix with momentum
     update = convex_comb(grad, momentum, beta1)
-    # Update momentum
-    momentum = convex_comb(grad, momentum, beta2)
     # Take the sign
     update = tree_map(jnp.sign, update)
+
+    # Update momentum
+    momentum = convex_comb(grad, momentum, beta2)
+
     # Add weight decay to update
     weight_decay = tree_map(lambda x: x * wd, cur_x)
     update = tree_map(lambda x, y: x + y, update, weight_decay)
+
     # Step size
     update = tree_map(lambda x: x * step_size, update)
     return tree_map(lambda x, y: x - y, cur_x, update), momentum

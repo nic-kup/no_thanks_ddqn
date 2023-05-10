@@ -3,7 +3,7 @@ from jax.example_libraries.stax import (
     serial,
     Sigmoid,
     Dense,
-    LeakyRelu,
+    Relu,
     parallel,
     FanOut,
 )
@@ -28,13 +28,15 @@ def Dueling():
 def build_model():
     """Builds the Dueling DDQN model."""
     return serial(
-        Dense(512),
-        LeakyRelu,
-        Dense(256),
-        LeakyRelu,
+        Dense(500),
+        Relu,
+        Dense(500),
+        Relu,
         FanOut(2),
-        parallel(Dense(64), Dense(64)),
-        parallel(LeakyRelu, LeakyRelu),
+        parallel(Dense(50), Dense(50)),
+        parallel(Relu, Relu),
+        parallel(Dense(25), Dense(25)),
+        parallel(Relu, Relu),
         parallel(Dense(1), Dense(2)),
         Dueling(),
     )
