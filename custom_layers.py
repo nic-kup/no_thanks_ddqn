@@ -27,6 +27,45 @@ def attention(qkv):
     return jnp.einsum("...ij,...jk->...ik", temp, v)
 
 
+def Dueling():
+    """Combining value and action via dueling architecture."""
+
+    def init_fun(rng, input_shape):
+        return input_shape[-1], ()
+
+    @jit
+    def apply_fun(params, inputs, **kwargs):
+        discounted_action = inputs[1] - jnp.max(inputs[1], axis=-1).reshape((-1, 1))
+        return inputs[0] + discounted_action
+
+    return init_fun, apply_fun
+
+
+def Identity():
+    """Identity Layer for ResNet"""
+
+    def init_fun(rng, input_shape):
+        return input_shape, ()
+
+    def apply_fun(params, inputs, **kwargs):
+        return inputs
+
+    return init_fun, apply_fun
+
+
+def PrintShape():
+    """Debug Layer"""
+
+    def init_fun(rng, input_shape):
+        print(input_shape)
+        return input_shape, ()
+
+    def apply_fun(params, inputs, **kwargs):
+        return inputs
+
+    return init_fun, apply_fun
+
+
 def LayerNorm(eps=1e-07, beta_init=zeros, gamma_init=ones):
     """Layer normalization layer"""
 
@@ -44,7 +83,6 @@ def LayerNorm(eps=1e-07, beta_init=zeros, gamma_init=ones):
         return out * gamma + beta
 
     return init_fun, apply_fun
-
 
 
 def ExpandDims(axis=-1):

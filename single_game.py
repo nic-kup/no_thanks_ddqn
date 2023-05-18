@@ -20,7 +20,7 @@ def single_game(predict, params, reward_factor=1.0, inv_temp=5.0):
 
         # Get game state (from Ps perspective)
         state = mygame.get_things()
-        q_vals = predict(params, state.reshape((1,-1))).ravel()
+        q_vals = predict(params, state.reshape((1, -1))).ravel()
 
         new_exp.append([*player_store[cur_player], state, 1.0])
 

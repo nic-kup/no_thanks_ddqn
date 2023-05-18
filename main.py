@@ -32,7 +32,7 @@ if __name__ == "__main__":
     _, params = init_random_params(sbkey, (-1, INPUT_SIZE))
     key, sbkey = jr.split(key)
 
-    EPOCHS = 200
+    EPOCHS = 100
     MAX_INV_TEMP = 50
     experiences = []
 
@@ -111,7 +111,7 @@ if __name__ == "__main__":
             momentum = convex_comb(momentum, tree_zeros_like(params), 0.5)
 
         # Play some games with `old_params` and `params`
-        list_of_new_exp = play_games(predict, params, 50 + 50 * (epoch==0), inv_temp)
+        list_of_new_exp = play_games(predict, params, 50 + 50 * (epoch == 0), inv_temp)
         new_exp = [item for sublist in list_of_new_exp for item in sublist]
 
         print(len(new_exp))
@@ -156,7 +156,7 @@ if __name__ == "__main__":
 
         cur_player = mygame.player_turn
         state = mygame.get_things()
-        q_vals = predict(params, state.reshape((1,-1))).ravel()
+        q_vals = predict(params, state.reshape((1, -1))).ravel()
 
         print("q_vals", q_vals)
 
