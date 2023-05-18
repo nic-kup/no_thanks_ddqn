@@ -11,7 +11,13 @@ A rough outline of the algorithm:
 - - In particular, the target is the predictions of the reward of the NN with old weights. This allows us to bootstrap learning. This approach is grounded by the reward of the final turn in the game.
 - Repeat.
 
+## Future Work
+The goal of this repo is two-fold, first to familiarize myself more with deep reinforcement learning through training an agent on a simple game with sparse rewards. Second to gain expertise in analyzing neural network weights. For now this is restricted to the `print_weights.py` file, however more is to come.
+
+
 ## Organization
-Run the `__main__.py` file to train the network. Then run the file `play.py` to play against the network. The `play.py` file is not yet functional.
+Run the `main.py` file to train the network. Then run the file `play.py` to play against the network. 
 
 The `game.py` file includes all the NoThanks relevant information.
+
+I coded custom layers in the `custom_layer.py` file. 

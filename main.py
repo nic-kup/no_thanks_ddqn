@@ -1,10 +1,11 @@
 """A Dueling DDQN learning to play no_thanks"""
+from numpy import load
 import jax.numpy as jnp
 import jax.random as jr
 from jax.nn import sigmoid
 import numpy.random as npr
 from jax import jit, grad
-from jax.tree_util import tree_map, tree_flatten
+from jax.tree_util import tree_map, tree_flatten, tree_unflatten
 from joblib import Parallel, delayed
 from game import NoThanks
 from single_game import single_game
@@ -20,6 +21,8 @@ if __name__ == "__main__":
 
     STEP_SIZE = 3e-4
 
+    CONTINUE_TRAINING_RUN = False
+
     mygame = NoThanks(4, 11)
     mygame.start_game()
     INPUT_SIZE = len(mygame.get_things())
@@ -29,7 +32,7 @@ if __name__ == "__main__":
     _, params = init_random_params(sbkey, (-1, INPUT_SIZE))
     key, sbkey = jr.split(key)
 
-    EPOCHS = 100
+    EPOCHS = 200
     MAX_INV_TEMP = 50
     experiences = []
 
@@ -77,23 +80,38 @@ if __name__ == "__main__":
     # |--------------------|
     # | Main training loop |
     # |--------------------|
+
     print("Start training")
     old_params = tree_zeros_like(params)
     momentum = tree_zeros_like(params)
     experiences = []
+    if CONTINUE_TRAINING_RUN:
+        print("Continuing last training run")
+
+        # Load parameters and create leaves
+        npz_files = load("params.npz")
+        leaves = [npz_files[npz_files.files[i]] for i in range(len(npz_files.files))]
+
+        # Get the tree definition
+        tree_def = tree_flatten(params)[1]
+
+        # Set the parameters from file
+        params = tree_unflatten(tree_def, leaves)
+        old_params = params.copy()
+
     inv_temp = 1
     for epoch in range(EPOCHS):
         # Decrease randomness up to point
         inv_temp = min(epoch, MAX_INV_TEMP)
 
         # Set old_params to params except in the beginning
-        if epoch % 10 == 1 and epoch > 2:
+        if epoch % 25 == 1 and epoch > 2:
             print("Reset old_params")
             old_params = params.copy()
-            # momentum = tree_zeros_like(params)
+            momentum = convex_comb(momentum, tree_zeros_like(params), 0.5)
 
         # Play some games with `old_params` and `params`
-        list_of_new_exp = play_games(predict, params, 50, inv_temp)
+        list_of_new_exp = play_games(predict, params, 50 + 50 * (epoch==0), inv_temp)
         new_exp = [item for sublist in list_of_new_exp for item in sublist]
 
         print(len(new_exp))
@@ -102,7 +120,7 @@ if __name__ == "__main__":
         experiences = experiences[:30000]
 
         # Gradient Descent
-        for _ in range(128):
+        for _ in range(64):  # 64*256 = 30'000
             batch = sample_from(experiences, k=256)
             grad = dloss(params, batch, sbkey)
             params, momentum = lion_step(STEP_SIZE, params, grad, momentum)
@@ -138,7 +156,7 @@ if __name__ == "__main__":
 
         cur_player = mygame.player_turn
         state = mygame.get_things()
-        q_vals = predict(params, state).ravel()
+        q_vals = predict(params, state.reshape((1,-1))).ravel()
 
         print("q_vals", q_vals)
 

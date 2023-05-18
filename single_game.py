@@ -17,8 +17,10 @@ def single_game(predict, params, reward_factor=1.0, inv_temp=5.0):
 
     while game_going:
         cur_player = mygame.player_turn
-        state = mygame.get_things()  # Get game state (from Ps perspective)
-        q_vals = predict(params, state).ravel()
+
+        # Get game state (from Ps perspective)
+        state = mygame.get_things()
+        q_vals = predict(params, state.reshape((1,-1))).ravel()
 
         new_exp.append([*player_store[cur_player], state, 1.0])
 
@@ -38,7 +40,7 @@ def single_game(predict, params, reward_factor=1.0, inv_temp=5.0):
                 player_store[player][1],  # a_t
                 winner[player],  # r_t
                 mygame.get_things_perspective(player),  # s_{t+1}
-                0.0,  # final / done? 0=yes
+                0.0,  # game_going? No
             ]
         )
     return list(filter(lambda x: len(x) == 5, new_exp))

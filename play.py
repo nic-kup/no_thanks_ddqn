@@ -47,10 +47,12 @@ if __name__ == "__main__":
         (mygame.get_things_perspective(player), 1) for player in range(mygame.n_players)
     ]
 
+    time.sleep(0.5)
+    print("|-|-|-|-|")
+
     while game_going:
-        print("-----")
         cur_player = mygame.player_turn
-        print(f"Player {cur_player}")
+        print(f"Player {cur_player}" + ", Your Turn!" * (cur_player == player_order))
         state = mygame.get_things()
 
         player_persp = mygame.get_current_player()[0]
@@ -59,8 +61,11 @@ if __name__ == "__main__":
             print(f"Center: Card {mygame.center_card} | Tokens {mygame.center_tokens}")
             print(f"Tokens: {player_persp[0]}")
             print(f"Cards {print_cards_from_one_hot(player_persp[1:])}")
-            if ("t" in input()):
-                game_going, rew, = mygame.take_card()
+            if "t" in input():
+                (
+                    game_going,
+                    rew,
+                ) = mygame.take_card()
                 player_store[cur_player] = (state, 0, q_vals[0])
             else:
                 game_going, rew = mygame.no_thanks()
@@ -72,19 +77,23 @@ if __name__ == "__main__":
             print(f"Tokens: {player_persp[0]}")
             print(f"Cards {print_cards_from_one_hot(player_persp[1:])}")
             if sigmoid(50 * (q_vals[0] - q_vals[1])) > npr.random():
-                game_going, rew, = mygame.take_card()
+                print("Take!")
+                (
+                    game_going,
+                    rew,
+                ) = mygame.take_card()
                 player_store[cur_player] = (state, 0, q_vals[0])
             else:
+                print("No Thanks!")
                 game_going, rew = mygame.no_thanks()
                 player_store[cur_player] = (state, 1, q_vals[1])
 
         time.sleep(0.5)
+        print("-----")
 
-    
     print(mygame.score())
     print(mygame.winning())
 
     for x in mygame.get_player_state_perspective():
         print(x[0])
         print(print_cards_from_one_hot(x[1:]))
-
