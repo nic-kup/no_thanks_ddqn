@@ -43,9 +43,6 @@ if __name__ == "__main__":
     mygame.start_game()
     game_going = 1
     experiences = []
-    player_store = [
-        (mygame.get_things_perspective(player), 1) for player in range(mygame.n_players)
-    ]
 
     time.sleep(0.5)
     print("|-|-|-|-|")
@@ -58,35 +55,23 @@ if __name__ == "__main__":
         player_persp = mygame.get_current_player()[0]
 
         if cur_player == player_order:
-            print(f"Center: Card {mygame.center_card} | Tokens {mygame.center_tokens}")
-            print(f"Tokens: {player_persp[0]}")
-            print(f"Cards {print_cards_from_one_hot(player_persp[1:])}")
+            print(f"Tokens {player_persp[0]:2} Cards {print_cards_from_one_hot(player_persp[1:])}")
+            print(f"Center Tokens {mygame.center_tokens} Cards {mygame.center_card}")
             if "t" in input():
-                (
-                    game_going,
-                    rew,
-                ) = mygame.take_card()
-                player_store[cur_player] = (state, 0, q_vals[0])
+                game_going, rew = mygame.take_card()
             else:
                 game_going, rew = mygame.no_thanks()
-                player_store[cur_player] = (state, 1, q_vals[1])
         else:
             q_vals = predict(params, state).ravel()
             player_persp = mygame.get_current_player()[0]
-            print(f"Center: Card {mygame.center_card} | Tokens {mygame.center_tokens}")
-            print(f"Tokens: {player_persp[0]}")
-            print(f"Cards {print_cards_from_one_hot(player_persp[1:])}")
+            print(f"Tokens {player_persp[0]:2} Cards {print_cards_from_one_hot(player_persp[1:])}")
+            print(f"Center Tokens {mygame.center_tokens} Cards {mygame.center_card}")
             if sigmoid(50 * (q_vals[0] - q_vals[1])) > npr.random():
                 print("Take!")
-                (
-                    game_going,
-                    rew,
-                ) = mygame.take_card()
-                player_store[cur_player] = (state, 0, q_vals[0])
+                game_going, rew = mygame.take_card()
             else:
                 print("No Thanks!")
                 game_going, rew = mygame.no_thanks()
-                player_store[cur_player] = (state, 1, q_vals[1])
 
         time.sleep(0.5)
         print("-----")
@@ -95,5 +80,4 @@ if __name__ == "__main__":
     print(mygame.winning())
 
     for x in mygame.get_player_state_perspective():
-        print(x[0])
-        print(print_cards_from_one_hot(x[1:]))
+        print(f"{x[0]:<3}|{print_cards_from_one_hot(x[1:])}")

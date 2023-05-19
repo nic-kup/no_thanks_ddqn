@@ -8,7 +8,7 @@ leaves = [npz_files[npz_files.files[i]] for i in range(len(npz_files.files))]
 
 for x in leaves:
     print("---")
-    print(np.max(x))
+    print(f"Max = {np.max(x)} , Min = {np.min(x)}")
     print(x)
     plt.plot(x)
     plt.show()

@@ -1,5 +1,6 @@
 """A Dueling DDQN learning to play no_thanks"""
 from numpy import load
+import time
 import jax.numpy as jnp
 import jax.random as jr
 from jax.nn import sigmoid
@@ -9,7 +10,8 @@ from jax.tree_util import tree_map, tree_flatten, tree_unflatten
 from joblib import Parallel, delayed
 from game import NoThanks
 from single_game import single_game
-from tree_helper import lion_step, tree_zeros_like
+from play import print_cards_from_one_hot
+from tree_helper import lion_step, tree_zeros_like, convex_comb
 from model import init_random_params, predict
 from sample_helpers import sample_from, sample_all
 
@@ -32,12 +34,12 @@ if __name__ == "__main__":
     _, params = init_random_params(sbkey, (-1, INPUT_SIZE))
     key, sbkey = jr.split(key)
 
-    EPOCHS = 100
+    EPOCHS = 200
     MAX_INV_TEMP = 50
     experiences = []
 
     @jit
-    def loss(params, batch, key=None):
+    def loss(params, batch, old_params, key=None):
         """Loss function for predictions"""
         s, a, r, sn, done = batch
 
@@ -61,19 +63,10 @@ if __name__ == "__main__":
 
     dloss = jit(grad(loss))
 
-    @jit
-    def convex_comb(tree1, tree2, alpha=0.9):
-        """Calculates the EMA of parameters"""
-        return tree_map(
-            lambda x, y: alpha * x + (1 - alpha) * y,
-            tree1,
-            tree2,
-        )
-
-    def play_games(predict, params, num_games, inv_temp):
+    def play_games(predict, params, old_params, num_games, inv_temp):
         """Play num_games games with given parameters and epsilon"""
         return Parallel(n_jobs=-1, backend="threading")(
-            delayed(single_game)(predict, params, 0.01, inv_temp)
+            delayed(single_game)(predict, params, old_params, 0.01, inv_temp)
             for _ in range(num_games)
         )
 
@@ -81,7 +74,6 @@ if __name__ == "__main__":
     # | Main training loop |
     # |--------------------|
 
-    print("Start training")
     old_params = tree_zeros_like(params)
     momentum = tree_zeros_like(params)
     experiences = []
@@ -98,38 +90,48 @@ if __name__ == "__main__":
         # Set the parameters from file
         params = tree_unflatten(tree_def, leaves)
         old_params = params.copy()
+    else:
+        print("Starting a new run")
 
     inv_temp = 1
+    print("Start training")
     for epoch in range(EPOCHS):
-        # Decrease randomness up to point
+        # Decrease randomness up to MAX_INV_TEMP
         inv_temp = min(epoch, MAX_INV_TEMP)
 
         # Set old_params to params except in the beginning
-        if epoch % 25 == 1 and epoch > 2:
-            print("Reset old_params")
+        if epoch % 40 == 1 and epoch > 2:
+            print("old_params <- params")
             old_params = params.copy()
-            momentum = convex_comb(momentum, tree_zeros_like(params), 0.5)
 
         # Play some games with `old_params` and `params`
-        list_of_new_exp = play_games(predict, params, 50 + 50 * (epoch == 0), inv_temp)
+        start_time = time.time()
+        list_of_new_exp = play_games(
+            predict, params, old_params, 50 + 50 * (epoch == 0), inv_temp
+        )
         new_exp = [item for sublist in list_of_new_exp for item in sublist]
-
-        print(len(new_exp))
+        time_new_exp = time.time() - start_time
 
         experiences = new_exp + experiences
         experiences = experiences[:30000]
 
         # Gradient Descent
-        for _ in range(64):  # 64*256 = 30'000
-            batch = sample_from(experiences, k=256)
-            grad = dloss(params, batch, sbkey)
+        start_time = time.time()
+        for _ in range(64):  # 64*256 = 16'384
+            batch = sample_from(experiences, k=128)
+            grad = dloss(params, batch, old_params, sbkey)
             params, momentum = lion_step(STEP_SIZE, params, grad, momentum)
             key, sbkey = jr.split(key)
+        time_grad_desc = time.time() - start_time
+
+        print(
+            f"|new_exp| = {len(new_exp):6} times: {time_new_exp:5.2f} and {time_grad_desc:5.2f}"
+        )
 
         # Print progress
         if epoch % 5 == 0 or epoch == EPOCHS - 1:
             big_batch = sample_all(experiences)
-            game_loss = jnp.mean(loss(params, big_batch, sbkey))
+            game_loss = jnp.mean(loss(params, big_batch, old_params, sbkey))
             key, sbkey = jr.split(key)
 
             print(
@@ -146,19 +148,18 @@ if __name__ == "__main__":
         (mygame.get_things_perspective(player), 1) for player in range(mygame.n_players)
     ]
 
+    print("|-------|")
     while game_going:
-        print("---")
-        print("Player", mygame.player_turn)
-        print("player tokens", mygame.player_state[mygame.player_turn][0])
-        print("Center Card", mygame.center_card)
-        print("Center Tokens", mygame.center_tokens)
-        print("Cards left", len(mygame.cards))
-
         cur_player = mygame.player_turn
         state = mygame.get_things()
         q_vals = predict(params, state.reshape((1, -1))).ravel()
+        player_persp = mygame.get_current_player()[0]
 
-        print("q_vals", q_vals)
+        print(f"Player: {mygame.player_turn} | Tokens: {player_persp[0]}")
+        print(f"Cards: {print_cards_from_one_hot(player_persp[1:])}")
+        print(f"Center: Card {mygame.center_card},  Tokens {mygame.center_tokens}")
+        print("Cards left", len(mygame.cards))
+        print("Q_vals", q_vals)
 
         if sigmoid(MAX_INV_TEMP * (q_vals[0] - q_vals[1])) > npr.random():
             game_going, rew = mygame.take_card()
@@ -169,12 +170,13 @@ if __name__ == "__main__":
             player_store[cur_player] = (state, 1, q_vals[1])
             print(f"no_thanks: {rew}")
 
+        print("-----------")
+
     print(mygame.score())
     print(mygame.winning())
 
     for x in mygame.get_player_state_perspective():
-        print(x[0])
-        print(*x[1:])
+        print(f"{x[0]:<3}|{print_cards_from_one_hot(x[1:])}")
 
     leaves, treedef = tree_flatten(params)
 
