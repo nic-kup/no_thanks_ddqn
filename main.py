@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
     STEP_SIZE = 3e-5
 
-    CONTINUE_TRAINING_RUN = False
+    CONTINUE_TRAINING_RUN = True
 
     mygame = NoThanks(4, 11)
     mygame.start_game()
@@ -34,8 +34,8 @@ if __name__ == "__main__":
     _, params = init_random_params(sbkey, (-1, INPUT_SIZE))
     key, sbkey = jr.split(key)
 
-    EPOCHS = 200
-    RESET_EPOCH_PER = 25
+    EPOCHS = 210
+    RESET_EPOCH_PER = 30
     MAX_INV_TEMP = 50
     experiences = []
 
