@@ -23,16 +23,14 @@ import jax.numpy as jnp
 def build_model():
     """Builds the Dueling DDQN model."""
     return serial(
-        Dense(400),
+        Dense(512),
         Relu,
-        Dense(400),
+        Dense(512),
         Relu,
-        Dense(100),
-        Relu,
-        Dense(50),
+        Dense(256),
         Relu,
         FanOut(2),
-        parallel(Dense(10), Dense(10)),
+        parallel(Dense(64), Dense(64)),
         parallel(Relu, Relu),
         parallel(Dense(1), Dense(2)),
         Dueling(),

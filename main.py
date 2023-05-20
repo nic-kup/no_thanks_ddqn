@@ -21,7 +21,7 @@ if __name__ == "__main__":
     key = jr.PRNGKey(SEED)
     key, sbkey = jr.split(key)
 
-    STEP_SIZE = 3e-4
+    STEP_SIZE = 3e-5
 
     CONTINUE_TRAINING_RUN = False
 
@@ -35,6 +35,7 @@ if __name__ == "__main__":
     key, sbkey = jr.split(key)
 
     EPOCHS = 200
+    RESET_EPOCH_PER = 25
     MAX_INV_TEMP = 50
     experiences = []
 
@@ -100,9 +101,10 @@ if __name__ == "__main__":
         inv_temp = min(epoch, MAX_INV_TEMP)
 
         # Set old_params to params except in the beginning
-        if epoch % 40 == 1 and epoch > 2:
-            print("old_params <- params")
+        if epoch % RESET_EPOCH_PER == 1 and epoch > 2:
+            print("old_params <- params & momentum <- 0")
             old_params = params.copy()
+            # momentum = tree_zeros_like(params)
 
         # Play some games with `old_params` and `params`
         start_time = time.time()
@@ -117,15 +119,15 @@ if __name__ == "__main__":
 
         # Gradient Descent
         start_time = time.time()
-        for _ in range(64):  # 64*256 = 16'384
-            batch = sample_from(experiences, k=128)
+        for _ in range(100):  # 64*256 = 16'384
+            batch = sample_from(experiences, k=256)
             grad = dloss(params, batch, old_params, sbkey)
             params, momentum = lion_step(STEP_SIZE, params, grad, momentum)
             key, sbkey = jr.split(key)
         time_grad_desc = time.time() - start_time
 
         print(
-            f"|new_exp| = {len(new_exp):6} times: {time_new_exp:5.2f} and {time_grad_desc:5.2f}"
+            f"|new_exp| = {len(new_exp):<6} times: {time_new_exp:5.2f} and {time_grad_desc:5.2f}"
         )
 
         # Print progress
@@ -135,7 +137,7 @@ if __name__ == "__main__":
             key, sbkey = jr.split(key)
 
             print(
-                f"{epoch:<4.0f}:  Loss: {game_loss:<9.4f}  exp_len: {len(experiences)}"
+                f" {epoch:<4.0f}:  Loss: {game_loss:<9.4f}  exp_len: {len(experiences)}"
             )
     # EXAMPLE GAMES
     print("example game")
