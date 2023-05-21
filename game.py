@@ -27,6 +27,7 @@ class NoThanks:
         self.init_tokens_per_player = 11
         self.reward_factor = reward_factor
 
+        # player_state = [num_tokens, *one_hot_cards]
         self.player_state = np.zeros((n_players, self.n_cards + 1), dtype=int)
         self.player_state[:, 0] = self.init_tokens_per_player
         self.player_state = self.player_state.tolist()

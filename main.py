@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
     STEP_SIZE = 3e-5
 
-    CONTINUE_TRAINING_RUN = True
+    CONTINUE_TRAINING_RUN = False
 
     mygame = NoThanks(4, 11)
     mygame.start_game()
@@ -104,7 +104,7 @@ if __name__ == "__main__":
         if epoch % RESET_EPOCH_PER == 1 and epoch > 2:
             print("old_params <- params & momentum <- 0")
             old_params = params.copy()
-            # momentum = tree_zeros_like(params)
+            momentum = tree_zeros_like(params)
 
         # Play some games with `old_params` and `params`
         start_time = time.time()
@@ -115,11 +115,11 @@ if __name__ == "__main__":
         time_new_exp = time.time() - start_time
 
         experiences = new_exp + experiences
-        experiences = experiences[:30000]
+        experiences = experiences[:65536]
 
         # Gradient Descent
         start_time = time.time()
-        for _ in range(100):  # 64*256 = 16'384
+        for _ in range(128):  # 64*256 = 16'384
             batch = sample_from(experiences, k=256)
             grad = dloss(params, batch, old_params, sbkey)
             params, momentum = lion_step(STEP_SIZE, params, grad, momentum)

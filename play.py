@@ -13,7 +13,6 @@ from game import NoThanks
 from model import predict, init_random_params
 
 
-
 def print_cards_from_one_hot(one_hot_of_cards):
     return " ".join(
         str(x) for x in [i + 3 for i, x in enumerate(one_hot_of_cards) if x == 1]
@@ -56,7 +55,9 @@ if __name__ == "__main__":
         player_persp = mygame.get_current_player()[0]
 
         if cur_player == player_order:
-            print(f"Tokens {player_persp[0]:<2} Cards {print_cards_from_one_hot(player_persp[1:])}")
+            print(
+                f"Tokens {player_persp[0]:<2} Cards {print_cards_from_one_hot(player_persp[1:])}"
+            )
             print(f"Center Tokens {mygame.center_tokens} Card {mygame.center_card}")
             if "t" in input():
                 game_going, rew = mygame.take_card()
@@ -65,7 +66,9 @@ if __name__ == "__main__":
         else:
             q_vals = predict(params, state).ravel()
             player_persp = mygame.get_current_player()[0]
-            print(f"Tokens {player_persp[0]:<2} Cards {print_cards_from_one_hot(player_persp[1:])}")
+            print(
+                f"Tokens {player_persp[0]:<2} Cards {print_cards_from_one_hot(player_persp[1:])}"
+            )
             print(f"Center Tokens {mygame.center_tokens} Card {mygame.center_card}")
             if sigmoid(50 * (q_vals[0] - q_vals[1])) > npr.random():
                 print("Take!")

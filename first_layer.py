@@ -1,3 +1,6 @@
+"""
+A script to analyze the first layer of the Neural Network with simple visualizations.
+"""
 from jax.tree_util import tree_flatten, tree_unflatten
 from model import predict, init_random_params
 import numpy as np
@@ -7,13 +10,15 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
     npz_files = np.load("params.npz")
     leaves = [npz_files[npz_files.files[i]] for i in range(len(npz_files.files))]
-
     first_layer = leaves[0]
-    print(first_layer)
 
-    for x in first_layer.T:
-        print("---")
-        print(f"Max = {np.max(x)} , Min = {np.min(x)}")
-        print(x)
-        plt.plot(x)
+    # Input state has 171 entries
+    # Find the layer that maxes given input
+    for i in range(171):
+        print(f"Input {i}")
+        argmax_for_input = np.argmax(first_layer[i])
+        argmin_for_input = np.argmin(first_layer[i])
+        plt.plot(first_layer.T[argmax_for_input])
+        plt.plot(first_layer.T[argmin_for_input])
+        plt.title(f"Layer {argmax_for_input}/{argmin_for_input} max/min input {i}")
         plt.show()
