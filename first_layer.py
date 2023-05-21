@@ -6,6 +6,7 @@ from model import predict, init_random_params
 import numpy as np
 import matplotlib.pyplot as plt
 
+rep_label = ["center", "cur", "n", "nn", "nnn"]
 
 if __name__ == "__main__":
     npz_files = np.load("params.npz")
@@ -21,4 +22,12 @@ if __name__ == "__main__":
         plt.plot(first_layer.T[argmax_for_input])
         plt.plot(first_layer.T[argmin_for_input])
         plt.title(f"Layer {argmax_for_input}/{argmin_for_input} max/min input {i}")
+        plt.show()
+
+        for j in range(5):
+            plt.plot(
+                first_layer.T[argmax_for_input][1 + j * 34 : (j + 1) * 34 + 1],
+                label=rep_label[j],
+            )
+            plt.legend()
         plt.show()
