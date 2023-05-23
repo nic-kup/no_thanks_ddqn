@@ -1,4 +1,5 @@
 """A Dueling DDQN learning to play no_thanks"""
+from random import sample
 from numpy import load
 import time
 import jax.numpy as jnp
@@ -21,9 +22,9 @@ if __name__ == "__main__":
     key = jr.PRNGKey(SEED)
     key, sbkey = jr.split(key)
 
-    STEP_SIZE = 3e-5
+    STEP_SIZE = 1e-5
 
-    CONTINUE_TRAINING_RUN = False
+    CONTINUE_TRAINING_RUN = True
 
     mygame = NoThanks(4, 11)
     mygame.start_game()
@@ -34,9 +35,9 @@ if __name__ == "__main__":
     _, params = init_random_params(sbkey, (-1, INPUT_SIZE))
     key, sbkey = jr.split(key)
 
-    EPOCHS = 210
-    RESET_EPOCH_PER = 30
-    MAX_INV_TEMP = 50
+    EPOCHS = 200
+    RESET_EPOCH_PER = 40
+    MAX_INV_TEMP = 60
     experiences = []
 
     @jit
@@ -57,8 +58,8 @@ if __name__ == "__main__":
             old_next_q_values, next_actions[:, None], axis=-1
         ).squeeze()
 
-        # Hardcoded 0.99 discount
-        target = r + 0.97 * done * old_next_q_values_sel
+        # Hardcoded discount
+        target = r + 0.98 * done * old_next_q_values_sel
 
         return jnp.mean(jnp.square(q_values - target))
 
@@ -98,7 +99,10 @@ if __name__ == "__main__":
     print("Start training")
     for epoch in range(EPOCHS):
         # Decrease randomness up to MAX_INV_TEMP
-        inv_temp = min(epoch, MAX_INV_TEMP)
+        if epoch < MAX_INV_TEMP:
+            inv_temp = min(epoch, MAX_INV_TEMP)
+        else:
+            inv_temp = None
 
         # Set old_params to params except in the beginning
         if epoch % RESET_EPOCH_PER == 1 and epoch > 2:
@@ -114,8 +118,10 @@ if __name__ == "__main__":
         new_exp = [item for sublist in list_of_new_exp for item in sublist]
         time_new_exp = time.time() - start_time
 
-        experiences = new_exp + experiences
-        experiences = experiences[:65536]
+        experiences = new_exp + sample(
+            experiences, k=min(35000 - len(new_exp), len(experiences))
+        )
+        # experiences = experiences[:35000]
 
         # Gradient Descent
         start_time = time.time()
@@ -163,7 +169,7 @@ if __name__ == "__main__":
         print("Cards left", len(mygame.cards))
         print("Q_vals", q_vals)
 
-        if sigmoid(MAX_INV_TEMP * (q_vals[0] - q_vals[1])) > npr.random():
+        if q_vals[0] > q_vals[1]:
             game_going, rew = mygame.take_card()
             player_store[cur_player] = (state, 0, q_vals[0])
             print(f"take: {rew}")

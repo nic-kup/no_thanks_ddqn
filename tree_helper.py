@@ -22,7 +22,7 @@ def tree_zeros_like(weights):
 
 
 @jit
-def lion_step(step_size, cur_x, grad, momentum, beta1=0.9, beta2=0.99, wd=1.1):
+def lion_step(step_size, cur_x, grad, momentum, beta1=0.9, beta2=0.99, wd=1.0):
     """Applies lion optimzer step to weights given grad and momentum"""
     # Mix with momentum
     update = convex_comb(grad, momentum, beta1)

@@ -28,7 +28,13 @@ def single_game(predict, params, old_params, reward_factor=1.0, inv_temp=5.0):
 
         new_exp.append([*player_store[cur_player], state, 1.0])
 
-        if sigmoid(inv_temp * (q_vals[0] - q_vals[1])) > npr.random():
+        take_q_val = 0.0
+        if inv_temp == None:
+            take_q_val = q_vals[0] > q_vals[1]
+        else:
+            take_q_val = sigmoid(inv_temp * (q_vals[0] - q_vals[1]))
+
+        if take_q_val > npr.random():
             game_going, reward = mygame.take_card()
             player_store[cur_player] = (state, 0, reward)
         else:

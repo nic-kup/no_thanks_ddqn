@@ -70,7 +70,7 @@ if __name__ == "__main__":
                 f"Tokens {player_persp[0]:<2} Cards {print_cards_from_one_hot(player_persp[1:])}"
             )
             print(f"Center Tokens {mygame.center_tokens} Card {mygame.center_card}")
-            if sigmoid(50 * (q_vals[0] - q_vals[1])) > npr.random():
+            if q_vals[0] > q_vals[1]:
                 print("Take!")
                 game_going, rew = mygame.take_card()
             else:

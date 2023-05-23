@@ -20,6 +20,24 @@ from custom_layers import (
 import jax.numpy as jnp
 
 
+# Possible model for future?
+def build_model():
+    """Builds the Dueling DDQN model."""
+    return serial(
+        Dense(512),
+        Relu,
+        Dense(512),
+        Relu,
+        FanOut(4),
+        parallel(
+            Dense(1),  # Value
+            Dense(2),  # Action pair
+            Dense(171),  # s_t+1
+            Dense(1),  # Immediate reward
+        ),
+    )
+
+
 def build_model():
     """Builds the Dueling DDQN model."""
     return serial(
@@ -29,10 +47,11 @@ def build_model():
         Relu,
         Dense(256),
         Relu,
+        Dense(64),
+        Relu,
         FanOut(2),
-        parallel(Dense(64), Dense(64)),
-        parallel(Relu, Relu),
         parallel(Dense(1), Dense(2)),
+        parallel(Sigmoid, Identity()),
         Dueling(),
     )
 
