@@ -78,6 +78,7 @@ if __name__ == "__main__":
 
     old_params = tree_zeros_like(params)
     momentum = tree_zeros_like(params)
+    inv_temp = 1
     experiences = []
     if CONTINUE_TRAINING_RUN:
         print("Continuing last training run")
@@ -92,14 +93,16 @@ if __name__ == "__main__":
         # Set the parameters from file
         params = tree_unflatten(tree_def, leaves)
         old_params = params.copy()
+
+        # Set inverse temp to None = infinity
+        inv_temp = None
     else:
         print("Starting a new run")
 
-    inv_temp = 1
     print("Start training")
     for epoch in range(EPOCHS):
         # Decrease randomness up to MAX_INV_TEMP
-        if epoch < MAX_INV_TEMP:
+        if (epoch < MAX_INV_TEMP) and (not CONTINUE_TRAINING_RUN):
             inv_temp = min(epoch, MAX_INV_TEMP)
         else:
             inv_temp = None
@@ -113,7 +116,7 @@ if __name__ == "__main__":
         # Play some games with `old_params` and `params`
         start_time = time.time()
         list_of_new_exp = play_games(
-            predict, params, old_params, 50 + 50 * (epoch == 0), inv_temp
+            predict, params, old_params, 50 + 100 * (epoch == 0), inv_temp
         )
         new_exp = [item for sublist in list_of_new_exp for item in sublist]
         time_new_exp = time.time() - start_time
