@@ -4,8 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
+
     def relu(x):
-        return np.maximum(0., x)
+        return np.maximum(0.0, x)
+
     npz_files = np.load("params.npz")
     leaves = [npz_files[npz_files.files[i]] for i in range(len(npz_files.files))]
 

@@ -28,11 +28,23 @@ def build_model():
         Relu,
         Dense(512),
         Relu,
-        FanOut(4),
+        FanOut(3),
         parallel(
-            Dense(1),  # Value
-            Dense(2),  # Action pair
-            Dense(171),  # s_t+1
+            FanOut(2),  # Value Action
+            Dense(256),  # s_t+1
+            Dense(16),  # Immediate reward
+        ),
+        parallel(
+            parallel(
+                Sigmoid,  # Value
+                Identity(),  # Effect of Action
+            ),
+            Relu,  # s_t+1
+            Relu,  # Immediate reward
+        ),
+        parallel(
+            Dueling(),  # Value
+            Dense(171),  # s_{n+1}
             Dense(1),  # Immediate reward
         ),
     )
@@ -54,6 +66,41 @@ def build_model():
         parallel(Sigmoid, Identity()),
         Dueling(),
     )
+
+
+@jit
+def loss(params, batch, old_params, key=None):
+    """Loss function for predictions"""
+    s, a, r, sn, done = batch
+
+    # Calculate various Q-values
+    new_q_values = predict(params, s)
+    new_next_q_values = predict(params, sn)
+    old_next_q_values = predict(old_params, sn)
+
+    # Apply to action
+    q_values = jnp.sum(new_q_values * a, axis=-1)
+
+    # actions via old
+    next_actions = jnp.argmax(new_next_q_values, axis=-1)
+    old_next_q_values_sel = jnp.take_along_axis(
+        old_next_q_values, next_actions[:, None], axis=-1
+    ).squeeze()
+
+    # Hardcoded discount
+    target = r + 0.98 * done * old_next_q_values_sel
+    return jnp.mean(jnp.square(q_values - target))
+
+
+@jit
+def all_loss(params, batch, old_params, key=None):
+    s, a, r, sn, done = batch
+    new_q_values, hat_sn, hat_r = predict(params, s)
+    nnew_q_values, nhat_sn, nhat_r = predict(params, sn)
+    old_q_values, ohat_sn, ohat_r = predict(params, s)
+
+    # Apply to action
+    q_values = jnp.sum(new_q_values * a, axis=-1)
 
 
 # def build_model():

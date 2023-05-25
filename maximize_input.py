@@ -13,6 +13,9 @@ import jax.numpy as jnp
 import numpy as np
 import matplotlib.pyplot as plt
 
+rep_label = ["center", "cur", "n", "nn", "nnn"]
+
+
 if __name__ == "__main__":
     npz_files = np.load("params.npz")
     leaves = [npz_files[npz_files.files[i]] for i in range(len(npz_files.files))]
@@ -46,17 +49,18 @@ if __name__ == "__main__":
     # Set params
     params = tree_unflatten(tree_def, leaves[:10])
     # Test
-    x = jnp.zeros((1,171))
-    momen = jnp.zeros((1,171))
+    x = jnp.zeros((1, 171))
+    momen = jnp.zeros((1, 171))
 
     print(predict(params, x))
 
     dpredict = grad(predict, 1)
-    for i in range(10000):
-        if i%10==0:
-            print(i)
+    for i in range(15000):
+        if i % 1000 == 0:
+            print(f"{i:<5}: {predict(params, x)}")
         grad = dpredict(params, x)
-        x, momen = lion_step(3e-5, x, grad, momen)
+        # -grad b/c we want to maximize
+        x, momen = lion_step(2e-4, x, -grad, momen, wd=0.1)
         # Todo: restrict x to realistic game state
         x = jnp.maximum(0.0, x)
 
@@ -64,4 +68,10 @@ if __name__ == "__main__":
 
     plt.plot(x.ravel())
     plt.show()
-
+    for j in range(5):
+        plt.plot(
+            x[0][j * 34 : (j + 1) * 34 + 1],
+            label=rep_label[j],
+        )
+        plt.legend()
+    plt.show()

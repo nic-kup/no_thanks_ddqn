@@ -13,55 +13,33 @@ from game import NoThanks
 from single_game import single_game
 from play import print_cards_from_one_hot
 from tree_helper import lion_step, tree_zeros_like, convex_comb
-from model import init_random_params, predict
+from model import init_random_params, predict, loss
 from sample_helpers import sample_from, sample_all
 
 if __name__ == "__main__":
-
-    SEED = 4
-    key = jr.PRNGKey(SEED)
-    key, sbkey = jr.split(key)
-
+    # Hyper parameters
     STEP_SIZE = 1e-5
-
     CONTINUE_TRAINING_RUN = True
+    EPOCHS = 150
+    WD = 0.5
+    RESET_EPOCH_PER = 50
+    MAX_INV_TEMP = 60
+    MAX_REPLAY_BUFFER = 36000
 
+    # Initializing a game / Getting inputs size
     mygame = NoThanks(4, 11)
     mygame.start_game()
     INPUT_SIZE = len(mygame.get_things())
-
     print(f"Input size: {INPUT_SIZE}")
 
+    # Randomness / Init network params
+    SEED = 4
+    key = jr.PRNGKey(SEED)
+    key, sbkey = jr.split(key)
     _, params = init_random_params(sbkey, (-1, INPUT_SIZE))
     key, sbkey = jr.split(key)
 
-    EPOCHS = 200
-    RESET_EPOCH_PER = 40
-    MAX_INV_TEMP = 60
     experiences = []
-
-    @jit
-    def loss(params, batch, old_params, key=None):
-        """Loss function for predictions"""
-        s, a, r, sn, done = batch
-
-        # Calculate various Q-values
-        new_q_values = predict(params, s)
-        new_next_q_values = predict(params, sn)
-        old_next_q_values = predict(old_params, sn)
-
-        # Apply to action
-        q_values = jnp.sum(new_q_values * a, axis=-1)
-
-        next_actions = jnp.argmax(new_next_q_values, axis=-1)
-        old_next_q_values_sel = jnp.take_along_axis(
-            old_next_q_values, next_actions[:, None], axis=-1
-        ).squeeze()
-
-        # Hardcoded discount
-        target = r + 0.98 * done * old_next_q_values_sel
-
-        return jnp.mean(jnp.square(q_values - target))
 
     dloss = jit(grad(loss))
 
@@ -109,7 +87,7 @@ if __name__ == "__main__":
 
         # Set old_params to params except in the beginning
         if epoch % RESET_EPOCH_PER == 1 and epoch > 2:
-            print("old_params <- params & momentum <- 0")
+            print("old_params <- params; momentum <- 0")
             old_params = params.copy()
             momentum = tree_zeros_like(params)
 
@@ -122,16 +100,15 @@ if __name__ == "__main__":
         time_new_exp = time.time() - start_time
 
         experiences = new_exp + sample(
-            experiences, k=min(35000 - len(new_exp), len(experiences))
+            experiences, k=min(MAX_REPLAY_BUFFER - len(new_exp), len(experiences))
         )
-        # experiences = experiences[:35000]
 
         # Gradient Descent
         start_time = time.time()
         for _ in range(128):  # 64*256 = 16'384
             batch = sample_from(experiences, k=256)
             grad = dloss(params, batch, old_params, sbkey)
-            params, momentum = lion_step(STEP_SIZE, params, grad, momentum)
+            params, momentum = lion_step(STEP_SIZE, params, grad, momentum, wd=WD)
             key, sbkey = jr.split(key)
         time_grad_desc = time.time() - start_time
 
