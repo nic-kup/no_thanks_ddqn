@@ -41,6 +41,29 @@ def Dueling():
     return init_fun, apply_fun
 
 
+def Softmax(axis=-1):
+    """Softmax"""
+
+    def init_fun(rng, input_shape):
+        return input_shape, ()
+
+    @jit
+    def apply_fun(params, inputs, **kwargs):
+        return softmax(inputs, axis=axis)
+
+
+def Reshape(new_shape):
+    """Reshape"""
+
+    def init_fun(rng, input_shape):
+        return (-1, *new_shape), ()
+
+    def apply_fun(params, inputs, **kwargs):
+        return inputs.reshape((-1, *new_shape))
+
+
+
+
 def Identity():
     """Identity Layer for ResNet"""
 

@@ -55,12 +55,12 @@ if __name__ == "__main__":
     print(predict(params, x))
 
     dpredict = grad(predict, 1)
-    for i in range(15000):
+    for i in range(5000):
         if i % 1000 == 0:
             print(f"{i:<5}: {predict(params, x)}")
         grad = dpredict(params, x)
         # -grad b/c we want to maximize
-        x, momen = lion_step(2e-4, x, -grad, momen, wd=0.1)
+        x, momen = lion_step(2e-3, x, -grad, momen, wd=0.1)
         # Todo: restrict x to realistic game state
         x = jnp.maximum(0.0, x)
 

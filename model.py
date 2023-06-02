@@ -2,6 +2,7 @@
 from jax.example_libraries.stax import (
     serial,
     Sigmoid,
+    Softmax,
     Dense,
     Relu,
     parallel,
@@ -63,9 +64,10 @@ def build_model():
         Relu,
         FanOut(2),
         parallel(Dense(1), Dense(2)),
-        parallel(Sigmoid, Identity()),
+        parallel(Sigmoid, Relu),
         Dueling(),
     )
+
 
 
 @jit
@@ -81,7 +83,7 @@ def loss(params, batch, old_params, key=None):
     # Apply to action
     q_values = jnp.sum(new_q_values * a, axis=-1)
 
-    # actions via old
+    # action from params, but value from old_params
     next_actions = jnp.argmax(new_next_q_values, axis=-1)
     old_next_q_values_sel = jnp.take_along_axis(
         old_next_q_values, next_actions[:, None], axis=-1
@@ -93,35 +95,33 @@ def loss(params, batch, old_params, key=None):
 
 
 @jit
-def all_loss(params, batch, old_params, key=None):
+def all_loss(params, predict, batch, old_params, key=None):
     s, a, r, sn, done = batch
     new_q_values, hat_sn, hat_r = predict(params, s)
     nnew_q_values, nhat_sn, nhat_r = predict(params, sn)
-    old_q_values, ohat_sn, ohat_r = predict(params, s)
+    old_q_values, ohat_sn, ohat_r = predict(old_params, sn)
+    
+    # Next state prediction
+    loss_sn = jnp.mean(jnp.sum(jnp.square(sn-hat_sn), axis=-1))
+
+    # Immediate reward
+    loss_r = jnp.mean(jnp.square(hat_r - r))
 
     # Apply to action
     q_values = jnp.sum(new_q_values * a, axis=-1)
+    
+    # New v old
+    next_actions = jnp.argmax(nnew_q_values, axis=-1)
+    old_next_q_values_sel = jnp.take_along_axis(
+        old_next_q_values, next_actions[:, None], axis=-1
+    ).squeeze()
 
+    # Hardcoded discount
+    target = r + 0.98 * done * old_next_q_values_sel
+    # Consistency Loss
+    loss_con = jnp.mean(jnp.square(q_values - target))
+    return loss_r + loss_sn + loss_con
 
-# def build_model():
-#     """Builds the Dueling DDQN model."""
-#     return serial(
-#         Dense(200),
-#         ExpandDims(),
-#         Dense(5),
-#         Relu,
-#         LayerNorm(),
-#         MultiHeadAttn((200, 200), (5, 1), 1),
-#         Relu,
-#         Flatten(),
-#         Dense(50),
-#         Relu,
-#         FanOut(2),
-#         parallel(Dense(25), Dense(25)),
-#         parallel(Relu, Relu),
-#         parallel(Dense(1), Dense(2)),
-#         Dueling(),
-#     )
 
 
 # Initialize model and prediction function

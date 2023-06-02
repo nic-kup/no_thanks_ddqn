@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
         for j in range(5):
             plt.plot(
-                first_layer.T[argmax_for_input][1 + j * 34 : (j + 1) * 34 + 1],
+                first_layer.T[argmax_for_input][j * 34 : (j + 1) * 34 + 1],
                 label=rep_label[j],
             )
             plt.legend()

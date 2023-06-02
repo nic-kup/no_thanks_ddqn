@@ -18,13 +18,13 @@ from sample_helpers import sample_from, sample_all
 
 if __name__ == "__main__":
     # Hyper parameters
-    STEP_SIZE = 1e-5
-    CONTINUE_TRAINING_RUN = True
-    EPOCHS = 150
-    WD = 0.5
+    STEP_SIZE = 2e-5
+    CONTINUE_TRAINING_RUN = False
+    EPOCHS = 500
+    WD = 1.0
     RESET_EPOCH_PER = 50
     MAX_INV_TEMP = 60
-    MAX_REPLAY_BUFFER = 36000
+    MAX_REPLAY_BUFFER = 40000
 
     # Initializing a game / Getting inputs size
     mygame = NoThanks(4, 11)
@@ -41,12 +41,12 @@ if __name__ == "__main__":
 
     experiences = []
 
-    dloss = jit(grad(loss))
+    dloss = jit(grad(loss, 0))
 
     def play_games(predict, params, old_params, num_games, inv_temp):
         """Play num_games games with given parameters and epsilon"""
         return Parallel(n_jobs=-1, backend="threading")(
-            delayed(single_game)(predict, params, old_params, 0.01, inv_temp)
+            delayed(single_game)(predict, params, old_params, 0.005, inv_temp)
             for _ in range(num_games)
         )
 
@@ -80,9 +80,11 @@ if __name__ == "__main__":
     print("Start training")
     for epoch in range(EPOCHS):
         # Decrease randomness up to MAX_INV_TEMP
-        if (epoch < MAX_INV_TEMP) and (not CONTINUE_TRAINING_RUN):
+        if (epoch < 2*MAX_INV_TEMP):
             inv_temp = min(epoch, MAX_INV_TEMP)
         else:
+            if inv_temp is not None:
+                print("Switch to deterministic")
             inv_temp = None
 
         # Set old_params to params except in the beginning
@@ -107,8 +109,8 @@ if __name__ == "__main__":
         start_time = time.time()
         for _ in range(128):  # 64*256 = 16'384
             batch = sample_from(experiences, k=256)
-            grad = dloss(params, batch, old_params, sbkey)
-            params, momentum = lion_step(STEP_SIZE, params, grad, momentum, wd=WD)
+            dlgrad = dloss(params, batch, old_params, sbkey)
+            params, momentum = lion_step(STEP_SIZE, params, dlgrad, momentum, wd=WD)
             key, sbkey = jr.split(key)
         time_grad_desc = time.time() - start_time
 
@@ -121,6 +123,8 @@ if __name__ == "__main__":
             big_batch = sample_all(experiences)
             game_loss = jnp.mean(loss(params, big_batch, old_params, sbkey))
             key, sbkey = jr.split(key)
+            leaves, treedef = tree_flatten(params)
+            jnp.savez("params", *leaves)
 
             print(
                 f" {epoch:<4.0f}:  Loss: {game_loss:<9.4f}  exp_len: {len(experiences)}"
@@ -167,5 +171,4 @@ if __name__ == "__main__":
         print(f"{x[0]:<3}|{print_cards_from_one_hot(x[1:])}")
 
     leaves, treedef = tree_flatten(params)
-
-    jnp.savez("params", *leaves)
+    jnp.savez("params_end", *leaves)
