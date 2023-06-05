@@ -3,6 +3,8 @@ from sys import exit
 import numpy as np
 import numpy.random as npr
 
+from jax import jit
+
 from jax.nn import sigmoid
 from jax.tree_util import tree_flatten, tree_unflatten
 from jax.random import PRNGKey
@@ -18,10 +20,14 @@ def print_cards_from_one_hot(one_hot_of_cards):
         str(x) for x in [i + 3 for i, x in enumerate(one_hot_of_cards) if x == 1]
     )
 
-
 if __name__ == "__main__":
+    @jit
+    def pred_q_values(params, state):
+        return predict(params, state)[0]
+
+
     # Load parameters and create leaves
-    npz_files = np.load("params.npz")
+    npz_files = np.load("params_end.npz")
     leaves = [npz_files[npz_files.files[i]] for i in range(len(npz_files.files))]
 
     mygame = NoThanks(4, 11)
@@ -50,7 +56,7 @@ if __name__ == "__main__":
     while game_going:
         cur_player = mygame.player_turn
         print(f"Player {cur_player}" + ", Your Turn!" * (cur_player == player_order))
-        state = mygame.get_things()
+        state = mygame.get_things().reshape((1,-1))
 
         player_persp = mygame.get_current_player()[0]
 
@@ -64,7 +70,7 @@ if __name__ == "__main__":
             else:
                 game_going, rew = mygame.no_thanks()
         else:
-            q_vals = predict(params, state).ravel()
+            q_vals = pred_q_values(params, state).ravel()
             player_persp = mygame.get_current_player()[0]
             print(
                 f"Tokens {player_persp[0]:<2} Cards {print_cards_from_one_hot(player_persp[1:])}"

@@ -13,15 +13,16 @@ from game import NoThanks
 from single_game import single_game
 from play import print_cards_from_one_hot
 from tree_helper import lion_step, tree_zeros_like, convex_comb
-from model import init_random_params, predict, loss
+from model import init_random_params, predict, all_loss
 from sample_helpers import sample_from, sample_all
 
 if __name__ == "__main__":
     # Hyper parameters
-    STEP_SIZE = 2e-5
+    STEP_SIZE1 = 3e-5
+    STEP_SIZE2 = 1e-5
     CONTINUE_TRAINING_RUN = False
-    EPOCHS = 500
-    WD = 1.0
+    EPOCHS = 346
+    WD = 0.5
     RESET_EPOCH_PER = 50
     MAX_INV_TEMP = 60
     MAX_REPLAY_BUFFER = 40000
@@ -41,7 +42,11 @@ if __name__ == "__main__":
 
     experiences = []
 
-    dloss = jit(grad(loss, 0))
+    dloss = jit(grad(all_loss, 0))
+
+    @jit
+    def pred_q_values(params, state):
+        return predict(params, state)[0]
 
     def play_games(predict, params, old_params, num_games, inv_temp):
         """Play num_games games with given parameters and epsilon"""
@@ -77,15 +82,19 @@ if __name__ == "__main__":
     else:
         print("Starting a new run")
 
+    STEP_SIZE = 1e-5
     print("Start training")
     for epoch in range(EPOCHS):
         # Decrease randomness up to MAX_INV_TEMP
-        if (epoch < 2*MAX_INV_TEMP):
+        if epoch < 2 * MAX_INV_TEMP:
+            STEP_SIZE = STEP_SIZE1
             inv_temp = min(epoch, MAX_INV_TEMP)
         else:
-            if inv_temp is not None:
-                print("Switch to deterministic")
-            inv_temp = None
+            STEP_SIZE = STEP_SIZE2
+            inv_temp = min(epoch, MAX_INV_TEMP)
+#            if inv_temp is not None:
+#                print("Switch to deterministic")
+#            inv_temp = None
 
         # Set old_params to params except in the beginning
         if epoch % RESET_EPOCH_PER == 1 and epoch > 2:
@@ -96,7 +105,7 @@ if __name__ == "__main__":
         # Play some games with `old_params` and `params`
         start_time = time.time()
         list_of_new_exp = play_games(
-            predict, params, old_params, 50 + 100 * (epoch == 0), inv_temp
+            pred_q_values, params, old_params, 50 + 100 * (epoch == 0), inv_temp
         )
         new_exp = [item for sublist in list_of_new_exp for item in sublist]
         time_new_exp = time.time() - start_time
@@ -121,21 +130,26 @@ if __name__ == "__main__":
         # Print progress
         if epoch % 5 == 0 or epoch == EPOCHS - 1:
             big_batch = sample_all(experiences)
-            game_loss = jnp.mean(loss(params, big_batch, old_params, sbkey))
+            game_loss = jnp.mean(all_loss(params, big_batch, old_params, sbkey))
             key, sbkey = jr.split(key)
             leaves, treedef = tree_flatten(params)
-            jnp.savez("params", *leaves)
+            jnp.savez("all_params", *leaves)
 
             print(
                 f" {epoch:<4.0f}:  Loss: {game_loss:<9.4f}  exp_len: {len(experiences)}"
             )
+
+    leaves, treedef = tree_flatten(params)
+    jnp.savez("params_end", *leaves)
+    print("Saved parameters as params_end")
+
     # EXAMPLE GAMES
     print("example game")
 
     mygame = NoThanks(4, 11)
     mygame.start_game()
     game_going = 1
-    experiences = []
+    game_states = []
     player_store = [
         (mygame.get_things_perspective(player), 1) for player in range(mygame.n_players)
     ]
@@ -143,8 +157,9 @@ if __name__ == "__main__":
     print("|-------|")
     while game_going:
         cur_player = mygame.player_turn
-        state = mygame.get_things()
-        q_vals = predict(params, state.reshape((1, -1))).ravel()
+        state = mygame.get_things().reshape((1,-1))
+        game_states.append(state)
+        q_vals = pred_q_values(params, state).ravel()
         player_persp = mygame.get_current_player()[0]
 
         print(f"Player: {mygame.player_turn} | Tokens: {player_persp[0]}")
@@ -155,11 +170,9 @@ if __name__ == "__main__":
 
         if q_vals[0] > q_vals[1]:
             game_going, rew = mygame.take_card()
-            player_store[cur_player] = (state, 0, q_vals[0])
             print(f"take: {rew}")
         else:
             game_going, rew = mygame.no_thanks()
-            player_store[cur_player] = (state, 1, q_vals[1])
             print(f"no_thanks: {rew}")
 
         print("-----------")
@@ -169,6 +182,9 @@ if __name__ == "__main__":
 
     for x in mygame.get_player_state_perspective():
         print(f"{x[0]:<3}|{print_cards_from_one_hot(x[1:])}")
+    
+    embedd = params[0][0]
+    embedded_game_states = jnp.array([jnp.dot(x, embedd) for x in game_states]).squeeze()
+    plt.plot(embedded_game_states[:,:5])
+    plt.show()
 
-    leaves, treedef = tree_flatten(params)
-    jnp.savez("params_end", *leaves)

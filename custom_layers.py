@@ -4,9 +4,10 @@ import jax.random as jr
 from math import prod
 from jax import jit
 from jax.lax import slice_in_dim
-from jax.nn import softmax
+from jax.nn import softmax, relu
 from jax.nn.initializers import glorot_normal, normal, zeros, ones
 from jax.example_libraries.stax import (
+    Relu,
     Dense,
     FanOut,
     FanInSum,
@@ -60,8 +61,6 @@ def Reshape(new_shape):
 
     def apply_fun(params, inputs, **kwargs):
         return inputs.reshape((-1, *new_shape))
-
-
 
 
 def Identity():
@@ -125,6 +124,31 @@ def ExpandDims(axis=-1):
     return init_fun, apply_fun
 
 
+def ResDense(size):
+    """Residual Dense Layer with LayerNorm"""
+    init_i, apply = Dense(size)
+
+    def init_fun(rng, input_shape):
+        ki, ko = jr.split(rng)
+
+        i_shape, i_params = init_i(ki, input_shape)
+        
+        init_o = Dense(input_shape[-1])[0]
+        o_params = init_o(ko, i_shape)[1]
+        return input_shape, (i_params, o_params)
+
+    def apply_fun(params, inputs, **kwargs):
+        i_params, o_params = params
+
+        stream = apply(i_params, inputs)
+        stream = softmax(stream)
+        stream = apply(o_params, stream)
+        return relu(stream + inputs)
+
+    return init_fun, apply_fun
+
+
+
 def Flatten():
     """Flattens to single dimension"""
 
@@ -144,23 +168,23 @@ def Linear(out_dim, W_init=glorot_normal(), b_init=normal()):
     def init_fun(rng, input_shape):
         output_shape = input_shape[:-1] + (out_dim,)
         k1, k2 = jr.split(rng)
-        W, b = W_init(k1, (input_shape[-1], out_dim)), b_init(k2, (out_dim,))
-        return output_shape, (W, b)
+        W = W_init(k1, (input_shape[-1], out_dim))
+        return output_shape, (W, )
 
     @jit
     def apply_fun(params, inputs, **kwargs):
-        W, b = params
-        return jnp.einsum("...ij,...jk->...ik", inputs, W) + b
+        W, = params
+        return jnp.einsum("...ij,...jk->...ik", inputs, W)
 
     return init_fun, apply_fun
 
 
 def SingleAttention(out_dim, inner_dim):
     """Single Headed attention for single token dim"""
-    init_q, apply_q = Linear(inner_dim)
-    init_k, apply_k = Linear(inner_dim)
-    init_v, apply_v = Linear(out_dim)
-    init_out, apply_out = Linear(out_dim)
+    init_q, apply_q = Dense(inner_dim)
+    init_k, apply_k = Dense(inner_dim)
+    init_v, apply_v = Dense(out_dim)
+    init_out, apply_out = Dense(out_dim)
 
     def init_fun(rng, input_shape):
         k1, k2, k3, k4 = jr.split(rng, 4)
@@ -209,10 +233,10 @@ def MultiHeadAttn(n_context, d_model, num_heads):
     d_k_in = d_model_in // num_heads
     d_k_out = d_model_out // num_heads
 
-    init_q, apply_q = Linear(d_model_in)
-    init_k, apply_k = Linear(d_model_in)
-    init_v, apply_v = Linear(d_model_out)
-    init_out, apply_out = Linear(d_model_out)
+    init_q, apply_q = Dense(d_model_in)
+    init_k, apply_k = Dense(d_model_in)
+    init_v, apply_v = Dense(d_model_out)
+    init_out, apply_out = Dense(d_model_out)
 
     def init_fun(rng, input_shape):
         k1, k2, k3, k4 = jr.split(rng, 4)
