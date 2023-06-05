@@ -8,7 +8,7 @@ if __name__ == "__main__":
     def relu(x):
         return np.maximum(0.0, x)
 
-    npz_files = np.load("params_end.npz")
+    npz_files = np.load("all_params.npz")
     leaves = [npz_files[npz_files.files[i]] for i in range(len(npz_files.files))]
 
     embedd = leaves[0]
@@ -23,7 +23,6 @@ if __name__ == "__main__":
 
     plt.imshow(emunbedd)
     plt.show()
-
 
     #    weights_to_V = [4, 6, 8]
     #    # Beware of interpretation

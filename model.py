@@ -1,10 +1,11 @@
 """Contains the model"""
 from jax.example_libraries.stax import (
+    Dense,
+    Identity,
+    Relu,
     serial,
     Sigmoid,
     Softmax,
-    Dense,
-    Relu,
     parallel,
     FanOut,
     FanInSum,
@@ -19,7 +20,6 @@ from custom_layers import (
     ResDense,
     LayerNorm,
     Dueling,
-    Identity,
 )
 import jax.numpy as jnp
 from game import NoThanks
@@ -42,7 +42,7 @@ def build_model():
         Relu,
         FanOut(2),
         parallel(Dense(1), Dense(2)),
-        parallel(Sigmoid, Identity()),
+        parallel(Sigmoid, Identity),
         Dueling(),
     )
 
@@ -51,16 +51,17 @@ def build_model():
     """Builds the Dueling DDQN model."""
     return serial(
         Linear(512),
-        ResDense(32),
-        ResDense(32),
-        ResDense(32),
+        ResDense(1024),
         FanOut(2),
         parallel(
-            serial(FanOut(2), parallel(Dense(1), Dense(2)), Dueling()),
-            serial(Linear(GAME_STATE_SIZE), Relu)
+            serial(
+                FanOut(2),
+                parallel(Dense(1), Dense(2)),
+                Dueling(),
+            ),
+            serial(Linear(GAME_STATE_SIZE), Relu),
         ),
     )
-
 
 
 # @jit
@@ -111,7 +112,7 @@ def all_loss(params, batch, old_params, key=None):
     embedd = params[0][0]
     unbedd = params[-1][-1][0][0]
 
-    loss_bedd = jnp.mean(jnp.square(jnp.dot(embedd, unbedd) - jnp.eye(GAME_STATE_SIZE)))
+    loss_bedd = 2.0 * jnp.mean(jnp.square(jnp.dot(embedd, unbedd) - jnp.eye(GAME_STATE_SIZE)))
 
     # Apply to action
     q_values = jnp.sum(new_q_values * a, axis=-1)

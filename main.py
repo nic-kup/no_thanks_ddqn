@@ -18,12 +18,12 @@ from sample_helpers import sample_from, sample_all
 
 if __name__ == "__main__":
     # Hyper parameters
-    STEP_SIZE1 = 3e-5
+    STEP_SIZE1 = 1e-4
     STEP_SIZE2 = 1e-5
     CONTINUE_TRAINING_RUN = False
-    EPOCHS = 346
-    WD = 0.5
-    RESET_EPOCH_PER = 50
+    EPOCHS = 450
+    WD = 0.75
+    RESET_EPOCH_PER = 30
     MAX_INV_TEMP = 60
     MAX_REPLAY_BUFFER = 40000
 
@@ -92,9 +92,9 @@ if __name__ == "__main__":
         else:
             STEP_SIZE = STEP_SIZE2
             inv_temp = min(epoch, MAX_INV_TEMP)
-#            if inv_temp is not None:
-#                print("Switch to deterministic")
-#            inv_temp = None
+        #            if inv_temp is not None:
+        #                print("Switch to deterministic")
+        #            inv_temp = None
 
         # Set old_params to params except in the beginning
         if epoch % RESET_EPOCH_PER == 1 and epoch > 2:
@@ -157,7 +157,7 @@ if __name__ == "__main__":
     print("|-------|")
     while game_going:
         cur_player = mygame.player_turn
-        state = mygame.get_things().reshape((1,-1))
+        state = mygame.get_things().reshape((1, -1))
         game_states.append(state)
         q_vals = pred_q_values(params, state).ravel()
         player_persp = mygame.get_current_player()[0]
@@ -182,9 +182,13 @@ if __name__ == "__main__":
 
     for x in mygame.get_player_state_perspective():
         print(f"{x[0]:<3}|{print_cards_from_one_hot(x[1:])}")
-    
-    embedd = params[0][0]
-    embedded_game_states = jnp.array([jnp.dot(x, embedd) for x in game_states]).squeeze()
-    plt.plot(embedded_game_states[:,:5])
-    plt.show()
 
+    embedd = params[0][0]
+    embedded_game_states = jnp.array(
+        [jnp.dot(x, embedd) for x in game_states]
+    ).squeeze()
+
+    import matplotlib.pyplot as plt
+
+    plt.plot(embedded_game_states[:, :5])
+    plt.show()

@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 rep_label = ["center", "cur", "n", "nn", "nnn"]
 
 if __name__ == "__main__":
-    npz_files = np.load("params_end.npz")
+    npz_files = np.load("all_params.npz")
     leaves = [npz_files[npz_files.files[i]] for i in range(len(npz_files.files))]
     first_layer = leaves[0]
 

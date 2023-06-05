@@ -11,6 +11,8 @@ from jax.random import PRNGKey
 
 import time
 
+import matplotlib.pyplot as plt
+
 from game import NoThanks
 from model import predict, init_random_params
 
@@ -20,11 +22,12 @@ def print_cards_from_one_hot(one_hot_of_cards):
         str(x) for x in [i + 3 for i, x in enumerate(one_hot_of_cards) if x == 1]
     )
 
+
 if __name__ == "__main__":
+
     @jit
     def pred_q_values(params, state):
         return predict(params, state)[0]
-
 
     # Load parameters and create leaves
     npz_files = np.load("params_end.npz")
@@ -42,21 +45,30 @@ if __name__ == "__main__":
     # Get parameters
     params = tree_unflatten(treedef, leaves)
     player_order = npr.randint(0, 4)
+    print("Do you want to play?")
+    if "n" in input():
+        player_order = -1
 
     print(f"You are player number {player_order}")
 
     mygame = NoThanks(4, 11)
     mygame.start_game()
     game_going = 1
-    experiences = []
+    game_states = [[] for i in range(4)]
+    time_states = [[] for i in range(4)]
 
     time.sleep(0.5)
     print("|-|-|-|-|")
 
+    turn_num = 0
     while game_going:
         cur_player = mygame.player_turn
         print(f"Player {cur_player}" + ", Your Turn!" * (cur_player == player_order))
-        state = mygame.get_things().reshape((1,-1))
+        state = mygame.get_things().reshape((1, -1))
+        game_states[cur_player].append(state.squeeze())
+        time_states[cur_player].append(turn_num)
+
+        turn_num += 1
 
         player_persp = mygame.get_current_player()[0]
 
@@ -83,7 +95,8 @@ if __name__ == "__main__":
                 print("No Thanks!")
                 game_going, rew = mygame.no_thanks()
 
-        time.sleep(0.5)
+        if player_order >= 0:
+            time.sleep(0.5)
         print("-----")
 
     print(mygame.score())
@@ -91,3 +104,12 @@ if __name__ == "__main__":
 
     for x in mygame.get_player_state_perspective():
         print(f"{x[0]:<3}|{print_cards_from_one_hot(x[1:])}")
+
+    embedd = params[0][0]
+    embedded_game_states = [0, 0, 0, 0]
+    for i in range(4):
+        embedded_game_states[i] = np.array([np.dot(x, embedd) for x in game_states[i]])
+
+    for i in range(4):
+        plt.plot(time_states[i], embedded_game_states[i][:, 1])
+    plt.show()

@@ -132,7 +132,7 @@ def ResDense(size):
         ki, ko = jr.split(rng)
 
         i_shape, i_params = init_i(ki, input_shape)
-        
+
         init_o = Dense(input_shape[-1])[0]
         o_params = init_o(ko, i_shape)[1]
         return input_shape, (i_params, o_params)
@@ -141,12 +141,11 @@ def ResDense(size):
         i_params, o_params = params
 
         stream = apply(i_params, inputs)
-        stream = softmax(stream)
+        stream = relu(stream)
         stream = apply(o_params, stream)
-        return relu(stream + inputs)
+        return stream + inputs
 
     return init_fun, apply_fun
-
 
 
 def Flatten():
@@ -167,13 +166,12 @@ def Linear(out_dim, W_init=glorot_normal(), b_init=normal()):
 
     def init_fun(rng, input_shape):
         output_shape = input_shape[:-1] + (out_dim,)
-        k1, k2 = jr.split(rng)
-        W = W_init(k1, (input_shape[-1], out_dim))
-        return output_shape, (W, )
+        W = jnp.eye(input_shape[-1], out_dim)
+        return output_shape, (W,)
 
     @jit
     def apply_fun(params, inputs, **kwargs):
-        W, = params
+        (W,) = params
         return jnp.einsum("...ij,...jk->...ik", inputs, W)
 
     return init_fun, apply_fun
