@@ -112,7 +112,9 @@ def all_loss(params, batch, old_params, key=None):
     embedd = params[0][0]
     unbedd = params[-1][-1][0][0]
 
-    loss_bedd = 2.0 * jnp.mean(jnp.square(jnp.dot(embedd, unbedd) - jnp.eye(GAME_STATE_SIZE)))
+    loss_bedd = 2.0 * jnp.mean(
+        jnp.square(jnp.dot(embedd, unbedd) - jnp.eye(GAME_STATE_SIZE))
+    )
 
     # Apply to action
     q_values = jnp.sum(new_q_values * a, axis=-1)
