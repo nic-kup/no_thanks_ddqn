@@ -13,10 +13,6 @@ if __name__ == "__main__":
 
     embedd = leaves[0]
     unbedd = leaves[-1]
-
-    print(embedd.shape)
-    print(unbedd.shape)
-
     emunbedd = np.dot(embedd, unbedd)
 
     print(np.diag(emunbedd))
@@ -24,18 +20,24 @@ if __name__ == "__main__":
     plt.imshow(emunbedd)
     plt.show()
 
-    #    weights_to_V = [4, 6, 8]
-    #    # Beware of interpretation
-    #    thing = np.dot(leaves[0], leaves[2])
-    #    for k in weights_to_V:
-    #        thing = np.dot(thing, leaves[k])
-    #    plt.title("Dot of all dense matricies")
-    #    plt.plot(thing)
-    #    plt.show()
+    resd1 = leaves[1]
+    bias1 = leaves[2]
+    resd2 = leaves[3]
+    bias2 = leaves[4]
+    
+    # Does this even make sense???
+    rest = np.dot(np.dot(np.dot(embedd, resd1)+bias1, resd2)+bias2, unbedd)
+    plt.title("First MLP in state space")
+    plt.imshow(rest)
+    plt.show()
 
+    
     for x in leaves:
         print("---")
         print(f"Max = {np.max(x)} , Min = {np.min(x)}")
         print(x)
-        plt.plot(x)
+        if len(x.shape)==2 and not (x.shape[0]<5 or x.shape[1]<5):
+            plt.imshow(x)
+        else:
+            plt.plot(x)
         plt.show()

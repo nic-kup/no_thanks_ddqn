@@ -51,14 +51,17 @@ def build_model():
     """Builds the Dueling DDQN model."""
     return serial(
         Linear(512),
-        ResDense(1024),
-        FanOut(2),
+        ResDense(256),
+        ResDense(256),
+        ResDense(256),
+        FanOut(3),
         parallel(
             serial(
                 FanOut(2),
                 parallel(Dense(1), Dense(2)),
                 Dueling(),
             ),
+            Identity,
             serial(Linear(GAME_STATE_SIZE), Relu),
         ),
     )
@@ -94,20 +97,14 @@ init_random_params, predict = build_model()
 # Compile the predict function
 predict = jit(predict)
 
-
 @jit
 def all_loss(params, batch, old_params, key=None):
     s, a, r, sn, done = batch
-    new_q_values, hat_sn = predict(params, s)
-    nnew_q_values, hat_snn = predict(params, sn)
-    old_q_values, ohat_snn = predict(old_params, sn)
-    hatn_q_values, hatn_snn = predict(params, hat_sn)
+    new_q_values,  hat_sn, _ = predict(params, s)
+    nnew_q_values, hat_snn, _ = predict(params, sn)
+    old_q_values, ohat_snn, _ = predict(old_params, sn)
 
     # Next state prediction + consistency
-    loss_sn = jnp.mean(jnp.mean(jnp.square(sn - hat_sn), axis=-1))
-    loss_snn = 0.5 * jnp.mean(
-        jnp.mean(jnp.square(stop_gradient(hat_snn) - hatn_snn), axis=-1)
-    )
 
     embedd = params[0][0]
     unbedd = params[-1][-1][0][0]
@@ -115,6 +112,8 @@ def all_loss(params, batch, old_params, key=None):
     loss_bedd = 2.0 * jnp.mean(
         jnp.square(jnp.dot(embedd, unbedd) - jnp.eye(GAME_STATE_SIZE))
     )
+
+    loss_sn = jnp.mean(jnp.mean(jnp.square(jnp.dot(sn, embedd) - hat_sn), axis=-1))
 
     # Apply to action
     q_values = jnp.sum(new_q_values * a, axis=-1)
@@ -129,4 +128,4 @@ def all_loss(params, batch, old_params, key=None):
     target = r + 0.98 * done * old_next_q_values_sel
     # Consistency Loss
     loss_con = jnp.mean(jnp.square(q_values - target))
-    return loss_con + loss_sn + loss_snn + loss_bedd
+    return loss_con + loss_sn + loss_bedd

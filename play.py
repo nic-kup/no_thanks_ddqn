@@ -30,7 +30,7 @@ if __name__ == "__main__":
         return predict(params, state)[0]
 
     # Load parameters and create leaves
-    npz_files = np.load("params_end.npz")
+    npz_files = np.load("all_params.npz")
     leaves = [npz_files[npz_files.files[i]] for i in range(len(npz_files.files))]
 
     mygame = NoThanks(4, 11)

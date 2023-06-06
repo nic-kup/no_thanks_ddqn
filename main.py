@@ -18,12 +18,13 @@ from sample_helpers import sample_from, sample_all
 
 if __name__ == "__main__":
     # Hyper parameters
-    STEP_SIZE1 = 1e-4
+    STEP_SIZE1 = 3e-5
     STEP_SIZE2 = 1e-5
+    WD1 = 0.5
+    WD2 = 0.9
     CONTINUE_TRAINING_RUN = False
-    EPOCHS = 450
-    WD = 0.75
-    RESET_EPOCH_PER = 30
+    EPOCHS = 500
+    RESET_EPOCH_PER = 50
     MAX_INV_TEMP = 60
     MAX_REPLAY_BUFFER = 40000
 
@@ -83,13 +84,17 @@ if __name__ == "__main__":
         print("Starting a new run")
 
     STEP_SIZE = 1e-5
+    WD = 0.5
+
     print("Start training")
     for epoch in range(EPOCHS):
         # Decrease randomness up to MAX_INV_TEMP
         if epoch < 2 * MAX_INV_TEMP:
+            WD = WD1
             STEP_SIZE = STEP_SIZE1
             inv_temp = min(epoch, MAX_INV_TEMP)
         else:
+            WD = WD2
             STEP_SIZE = STEP_SIZE2
             inv_temp = min(epoch, MAX_INV_TEMP)
         #            if inv_temp is not None:
