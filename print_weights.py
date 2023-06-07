@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
+    
+    cmap = "CMRmap"
 
     def relu(x):
         return np.maximum(0.0, x)
@@ -17,19 +19,20 @@ if __name__ == "__main__":
 
     print(np.diag(emunbedd))
 
-    plt.imshow(emunbedd)
+    plt.imshow(emunbedd, cmap = cmap)
     plt.show()
 
-    resd1 = leaves[1]
-    bias1 = leaves[2]
-    resd2 = leaves[3]
-    bias2 = leaves[4]
-    
-    # Does this even make sense???
-    rest = np.dot(np.dot(np.dot(embedd, resd1)+bias1, resd2)+bias2, unbedd)
-    plt.title("First MLP in state space")
-    plt.imshow(rest)
-    plt.show()
+    for i in range(3):
+        resd1 = leaves[i*4+1]
+        bias1 = leaves[i*4+2]
+        resd2 = leaves[i*4+3]
+        bias2 = leaves[i*4+4]
+        
+        # Does this even make sense???
+        rest = np.dot(np.dot(np.maximum(np.dot(embedd, resd1)+bias1, 0), resd2)+bias2, unbedd)
+        plt.title(f"{i+1}th MLP (don't interpret too much!)")
+        plt.imshow(rest, cmap=cmap)
+        plt.show()
 
     
     for x in leaves:
@@ -37,7 +40,7 @@ if __name__ == "__main__":
         print(f"Max = {np.max(x)} , Min = {np.min(x)}")
         print(x)
         if len(x.shape)==2 and not (x.shape[0]<5 or x.shape[1]<5):
-            plt.imshow(x)
+            plt.imshow(x, cmap=cmap)
         else:
             plt.plot(x)
         plt.show()

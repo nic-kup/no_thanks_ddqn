@@ -22,7 +22,7 @@ if __name__ == "__main__":
     STEP_SIZE2 = 1e-5
     WD1 = 0.5
     WD2 = 0.9
-    CONTINUE_TRAINING_RUN = False
+    CONTINUE_TRAINING_RUN = True
     EPOCHS = 500
     RESET_EPOCH_PER = 50
     MAX_INV_TEMP = 60
@@ -68,7 +68,7 @@ if __name__ == "__main__":
         print("Continuing last training run")
 
         # Load parameters and create leaves
-        npz_files = load("params.npz")
+        npz_files = load("params_end.npz")
         leaves = [npz_files[npz_files.files[i]] for i in range(len(npz_files.files))]
 
         # Get the tree definition
