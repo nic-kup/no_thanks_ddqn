@@ -1,5 +1,6 @@
 """Contains a class to describe the game no thanks"""
 import numpy as np
+from jax.nn import one_hot
 import numpy.random as npr
 
 
@@ -26,11 +27,11 @@ class NoThanks:
         self.removed_cards = removed_cards
         self.init_tokens_per_player = 11
         self.reward_factor = reward_factor
+        self.max_tokens = self.init_tokens_per_player * self.n_players + 1
 
-        # player_state = [num_tokens, *one_hot_cards]
-        self.player_state = np.zeros((n_players, self.n_cards + 1), dtype=int)
-        self.player_state[:, 0] = self.init_tokens_per_player
-        self.player_state = self.player_state.tolist()
+        self.player_cards = np.zeros((n_players, self.n_cards), dtype=int)
+        self.player_tokens = np.zeros((n_players, self.max_tokens), dtype=int)
+        self.player_tokens[:, self.init_tokens_per_player] = 1
 
         self.center_card = -1
         self.center_tokens = 0
@@ -51,8 +52,30 @@ class NoThanks:
 
         self.center_card = self.cards.pop()
 
-    def get_player_state_perspective(self, k=0):
-        return self.player_state[k : self.n_players] + self.player_state[0:k]
+    def get_player_tokens_persp(self, player=0):
+        return np.concatenate(
+            (self.player_tokens[player:4], self.player_tokens[0:player])
+        )
+
+    def get_player_cards_persp(self, player=0):
+        return np.concatenate(
+            (self.player_cards[player:4], self.player_cards[0:player])
+        )
+
+    def get_player_tokens_int(self, player=0):
+        return np.dot(self.player_tokens[player], np.arange(self.max_tokens))
+
+    def get_player_state(self, k=0):
+        return np.concatenate((self.player_tokens[i], self.player_cards[i]))
+
+    def get_player_state_perspective(self, player=0):
+        return np.concatenate(
+            (
+                self.get_player_tokens_persp(player),
+                self.get_player_cards_persp(player),
+            ),
+            axis=-1,
+        )
 
     def get_current_player(self):
         return self.get_player_state_perspective(self.turn % self.n_players)
@@ -65,31 +88,35 @@ class NoThanks:
 
     @property
     def one_hot_center_card(self):
-        one_hot = np.zeros(self.high_card - self.low_card + 1)
-        one_hot[self.center_card - self.low_card] = 1.0
-        return one_hot
+        one_hot_c = np.zeros(self.high_card - self.low_card + 1)
+        one_hot_c[self.center_card - self.low_card] = 1.0
+        return one_hot_c
 
     def take_card(self, punish=False):
         """current player takes center card"""
         self.no_take_counter -= 1
         reward = 0.0
 
-        old_score = self.score_single(self.player_state[self.player_turn])
+        old_score = self.score_single(self.player_turn)
 
-        self.player_state[self.player_turn][self.center_card - self.low_card + 1] = 1
-        self.player_state[self.player_turn][0] += self.center_tokens
+        tokens_int = self.get_player_tokens_int(self.player_turn)
+
+        # Update token count / reset center tokens
+        self.player_tokens[self.player_turn] = 0
+        self.player_tokens[self.player_turn][tokens_int + self.center_tokens] = 1
         self.center_tokens = 0
 
-        new_score = self.score_single(self.player_state[self.player_turn])
+        self.player_cards[self.player_turn][self.center_card - self.low_card] = 1
 
         # Lower score is better, higher reward is better
+        new_score = self.score_single(self.player_turn)
         reward = old_score - new_score
 
         reward *= self.reward_factor
         self.true_turn += 1
 
+        # Check if we end the game
         if len(self.cards) == 0:
-            # Check if we end the game
             return (0, reward - punish)
 
         self.center_card = self.cards.pop()
@@ -99,10 +126,14 @@ class NoThanks:
         """Current player no thanks"""
         self.no_take_counter += 1
 
+        tokens_int = self.get_player_tokens_int(self.player_turn)
+
         # If you have no tokens you have to take the card
-        if self.player_state[self.player_turn][0] == 0:
+        if self.player_tokens[self.player_turn][0] == 1:
             return self.take_card(True)
-        self.player_state[self.player_turn][0] += -1
+
+        self.player_tokens[self.player_turn] = 0
+        self.player_tokens[self.player_turn][tokens_int - 1] = 1
         self.center_tokens += 1
         self.turn += 1
         self.true_turn += 1
@@ -111,7 +142,7 @@ class NoThanks:
     def score(self):
         """Return cur scores of players"""
         scores = []
-        for player in self.player_state:
+        for player in range(self.n_players):
             scores.append(self.score_single(player))
         return scores
 
@@ -121,16 +152,16 @@ class NoThanks:
         inds = np.argsort(self.score())
         scores[inds[0]] = 1.0
         scores[inds[1]] = 0.5
-        scores[inds[2]] = 0.3
+        scores[inds[2]] = 0.25
         scores[inds[3]] = 0.0
         return scores
 
     def score_single(self, player):
         """Return score for single player"""
-        score = -player[0]
+        score = -self.get_player_tokens_int(player)
         number = self.low_card
         prev = False
-        for x in player[1:]:
+        for x in self.player_cards[player]:
             if not prev:
                 score += x * number
             prev = x
@@ -142,8 +173,10 @@ class NoThanks:
         """Get game state from cur_player perspective"""
         return np.concatenate(
             (
-                np.array(len(self.cards)).reshape(-1),
-                np.array(self.center_tokens).reshape(-1),
+                np.array(one_hot(len(self.cards), self.n_cards)),
+                np.array(
+                    one_hot(self.center_tokens, self.init_tokens_per_player * 4 + 1)
+                ),
                 self.one_hot_center_card,
                 self.get_current_player_flat(),
             )
@@ -153,8 +186,10 @@ class NoThanks:
         """Get game state from k's perspective"""
         return np.concatenate(
             (
-                np.array(len(self.cards)).reshape(-1),
-                np.array(self.center_tokens).reshape(-1),
+                np.array(one_hot(len(self.cards), self.n_cards)),
+                np.array(
+                    one_hot(self.center_tokens, self.init_tokens_per_player * 4 + 1)
+                ),
                 self.one_hot_center_card,
                 self.get_player_state_flat(k),
             )

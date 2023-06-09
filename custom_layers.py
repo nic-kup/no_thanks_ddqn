@@ -42,6 +42,25 @@ def Dueling():
     return init_fun, apply_fun
 
 
+@jit
+def solu(x, axis=-1):
+    return x * softmax(x, axis=axis)
+
+
+def SoLU(axis=-1):
+    """Softmax Linear Unit"""
+
+    def init_fun(rng, input_shape):
+        return input_shape, ()
+
+    @jit
+    def apply_fun(params, inputs, **kwargs):
+        return solu(inputs, axis=axis)
+
+
+SoLU = SoLU()
+
+
 def Softmax(axis=-1):
     """Softmax"""
 
@@ -61,18 +80,6 @@ def Reshape(new_shape):
 
     def apply_fun(params, inputs, **kwargs):
         return inputs.reshape((-1, *new_shape))
-
-
-def Identity():
-    """Identity Layer for ResNet"""
-
-    def init_fun(rng, input_shape):
-        return input_shape, ()
-
-    def apply_fun(params, inputs, **kwargs):
-        return inputs
-
-    return init_fun, apply_fun
 
 
 def PrintShape():
@@ -141,7 +148,7 @@ def ResDense(size):
         i_params, o_params = params
 
         stream = apply(i_params, inputs)
-        stream = relu(stream)
+        stream = solu(stream)
         stream = apply(o_params, stream)
         return stream + inputs
 
@@ -166,7 +173,8 @@ def Linear(out_dim, W_init=glorot_normal(), b_init=normal()):
 
     def init_fun(rng, input_shape):
         output_shape = input_shape[:-1] + (out_dim,)
-        W = jnp.eye(input_shape[-1], out_dim)
+        key = jr.split(rng)[0]
+        W = W_init(key, (input_shape[-1], out_dim))
         return output_shape, (W,)
 
     @jit

@@ -24,18 +24,6 @@ if __name__ == "__main__":
     INPUT_SIZE = 171
 
     # Rebuild model, but just to Value
-    init_params, predict1 = serial(
-        Dense(512),
-        Relu,
-        Dense(512),
-        Relu,
-        Dense(256),
-        Relu,
-        Dense(64),
-        Relu,
-        Dense(1),
-        Sigmoid,
-    )
 
     key, sbkey = jr.split(key)
 

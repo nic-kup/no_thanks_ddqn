@@ -70,11 +70,13 @@ if __name__ == "__main__":
 
         turn_num += 1
 
-        player_persp = mygame.get_current_player()[0]
+        player_cards = mygame.player_cards[cur_player]
+        player_tkns = mygame.get_player_tokens_int(cur_player)
+        q_vals = pred_q_values(params, state).ravel()
 
         if cur_player == player_order:
             print(
-                f"Tokens {player_persp[0]:<2} Cards {print_cards_from_one_hot(player_persp[1:])}"
+                f"Tokens {player_tkns:<2} Cards {print_cards_from_one_hot(player_cards)}"
             )
             print(f"Center Tokens {mygame.center_tokens} Card {mygame.center_card}")
             if "t" in input():
@@ -82,10 +84,9 @@ if __name__ == "__main__":
             else:
                 game_going, rew = mygame.no_thanks()
         else:
-            q_vals = pred_q_values(params, state).ravel()
             player_persp = mygame.get_current_player()[0]
             print(
-                f"Tokens {player_persp[0]:<2} Cards {print_cards_from_one_hot(player_persp[1:])}"
+                f"Tokens {player_tkns:<2} Cards {print_cards_from_one_hot(player_cards)}"
             )
             print(f"Center Tokens {mygame.center_tokens} Card {mygame.center_card}")
             if q_vals[0] > q_vals[1]:
@@ -95,6 +96,7 @@ if __name__ == "__main__":
                 print("No Thanks!")
                 game_going, rew = mygame.no_thanks()
 
+        print(q_vals)
         if player_order >= 0:
             time.sleep(0.5)
         print("-----")
@@ -102,14 +104,19 @@ if __name__ == "__main__":
     print(mygame.score())
     print(mygame.winning())
 
-    for x in mygame.get_player_state_perspective():
-        print(f"{x[0]:<3}|{print_cards_from_one_hot(x[1:])}")
+    for player in range(mygame.n_players):
+        print(
+            f"{mygame.get_player_tokens_int(player):<3}|{print_cards_from_one_hot(mygame.player_cards[player])}"
+        )
 
     embedd = params[0][0]
     embedded_game_states = [0, 0, 0, 0]
     for i in range(4):
         embedded_game_states[i] = np.array([np.dot(x, embedd) for x in game_states[i]])
 
-    for i in range(4):
-        plt.plot(time_states[i], embedded_game_states[i][:, 1])
-    plt.show()
+    for j in range(5):
+        plt.title(f"Bla {j}")
+        for i in range(4):
+            plt.plot(time_states[i], embedded_game_states[i][:, j], label=i)
+        plt.legend()
+        plt.show()

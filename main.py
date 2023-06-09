@@ -4,6 +4,7 @@ from numpy import load
 import time
 import jax.numpy as jnp
 import jax.random as jr
+from jax.profiler import start_trace, stop_trace
 from jax.nn import sigmoid
 import numpy.random as npr
 from jax import jit, grad
@@ -18,11 +19,11 @@ from sample_helpers import sample_from, sample_all
 
 if __name__ == "__main__":
     # Hyper parameters
-    STEP_SIZE1 = 3e-5
+    STEP_SIZE1 = 2e-5
     STEP_SIZE2 = 1e-5
     WD1 = 0.5
     WD2 = 0.9
-    CONTINUE_TRAINING_RUN = True
+    CONTINUE_TRAINING_RUN = False
     EPOCHS = 500
     RESET_EPOCH_PER = 50
     MAX_INV_TEMP = 60
@@ -44,6 +45,9 @@ if __name__ == "__main__":
     experiences = []
 
     dloss = jit(grad(all_loss, 0))
+
+    # Run `tensorboard --logdir=./tmp/tensorboard`
+    start_trace("./tmp/tensorboard")
 
     @jit
     def pred_q_values(params, state):
@@ -85,8 +89,12 @@ if __name__ == "__main__":
 
     STEP_SIZE = 1e-5
     WD = 0.5
-
+    game_loss = jnp.array(0.0)
+    game_loss.block_until_ready()
     print("Start training")
+
+    stop_trace()
+
     for epoch in range(EPOCHS):
         # Decrease randomness up to MAX_INV_TEMP
         if epoch < 2 * MAX_INV_TEMP:
@@ -185,8 +193,8 @@ if __name__ == "__main__":
     print(mygame.score())
     print(mygame.winning())
 
-    for x in mygame.get_player_state_perspective():
-        print(f"{x[0]:<3}|{print_cards_from_one_hot(x[1:])}")
+    for x in range(mygame.n_players):
+        print(f"{mygame.get_player_tokens_int(x):<3}|{print_cards_from_one_hot(mygame.player_cards[x])}")
 
     embedd = params[0][0]
     embedded_game_states = jnp.array(

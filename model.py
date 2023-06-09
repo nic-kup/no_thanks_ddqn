@@ -15,6 +15,7 @@ from jax.lax import stop_gradient
 from custom_layers import (
     MultiHeadAttn,
     ExpandDims,
+    SoLU,
     Flatten,
     Linear,
     ResDense,
@@ -50,10 +51,10 @@ def build_model():
 def build_model():
     """Builds the Dueling DDQN model."""
     return serial(
-        Linear(512),
-        ResDense(256),
-        ResDense(256),
-        ResDense(256),
+        Linear(256),
+        ResDense(128),
+        ResDense(128),
+        ResDense(128),
         FanOut(3),
         parallel(
             serial(
@@ -97,10 +98,11 @@ init_random_params, predict = build_model()
 # Compile the predict function
 predict = jit(predict)
 
+
 @jit
 def all_loss(params, batch, old_params, key=None):
     s, a, r, sn, done = batch
-    new_q_values,  hat_sn, _ = predict(params, s)
+    new_q_values, hat_sn, _ = predict(params, s)
     nnew_q_values, hat_snn, _ = predict(params, sn)
     old_q_values, ohat_snn, _ = predict(old_params, sn)
 
@@ -126,6 +128,6 @@ def all_loss(params, batch, old_params, key=None):
 
     # Hardcoded discount
     target = r + 0.98 * done * old_next_q_values_sel
-    # Consistency Loss
-    loss_con = jnp.mean(jnp.square(q_values - target))
+    # Bellman Loss with extra weighting on terminal episodes
+    loss_con = jnp.mean((3.0 - 2.0 * done) * jnp.square(q_values - target))
     return loss_con + loss_sn + loss_bedd
