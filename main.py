@@ -173,10 +173,11 @@ if __name__ == "__main__":
         state = mygame.get_things().reshape((1, -1))
         game_states.append(state)
         q_vals = pred_q_values(params, state).ravel()
-        player_persp = mygame.get_current_player()[0]
+        player_tkns = mygame.get_player_tokens_int(cur_player)
+        player_cards = mygame.player_cards[cur_player]
 
-        print(f"Player: {mygame.player_turn} | Tokens: {player_persp[0]}")
-        print(f"Cards: {print_cards_from_one_hot(player_persp[1:])}")
+        print(f"Player: {mygame.player_turn} | Tokens: {player_tkns}")
+        print(f"Cards: {print_cards_from_one_hot(player_cards)}")
         print(f"Center: Card {mygame.center_card},  Tokens {mygame.center_tokens}")
         print("Cards left", len(mygame.cards))
         print("Q_vals", q_vals)

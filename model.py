@@ -51,10 +51,10 @@ def build_model():
 def build_model():
     """Builds the Dueling DDQN model."""
     return serial(
-        Linear(256),
-        ResDense(128),
-        ResDense(128),
-        ResDense(128),
+        Linear(128),
+        ResDense(256),
+        ResDense(256),
+        ResDense(256),
         FanOut(3),
         parallel(
             serial(
