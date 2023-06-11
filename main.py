@@ -14,18 +14,18 @@ from game import NoThanks
 from single_game import single_game
 from play import print_cards_from_one_hot
 from tree_helper import lion_step, tree_zeros_like, convex_comb
-from model import init_random_params, predict, all_loss
+from model import init_random_params, predict, loss
 from sample_helpers import sample_from, sample_all
 
 if __name__ == "__main__":
     # Hyper parameters
-    STEP_SIZE1 = 2e-5
-    STEP_SIZE2 = 1e-5
-    WD1 = 0.5
-    WD2 = 0.9
+    STEP_SIZE1 = 3e-5
+    STEP_SIZE2 = 2e-5
+    WD1 = 0.75
+    WD2 = 1.0
     CONTINUE_TRAINING_RUN = False
     EPOCHS = 500
-    RESET_EPOCH_PER = 50
+    RESET_EPOCH_PER = 100
     MAX_INV_TEMP = 60
     MAX_REPLAY_BUFFER = 40000
 
@@ -44,19 +44,19 @@ if __name__ == "__main__":
 
     experiences = []
 
-    dloss = jit(grad(all_loss, 0))
+    dloss = jit(grad(loss, 0))
 
     # Run `tensorboard --logdir=./tmp/tensorboard`
-    start_trace("./tmp/tensorboard")
+    # start_trace("./tmp/tensorboard")
 
     @jit
     def pred_q_values(params, state):
         return predict(params, state)[0]
 
-    def play_games(predict, params, old_params, num_games, inv_temp):
+    def play_games(predict, param_list, num_games, inv_temp):
         """Play num_games games with given parameters and epsilon"""
         return Parallel(n_jobs=-1, backend="threading")(
-            delayed(single_game)(predict, params, old_params, 0.005, inv_temp)
+            delayed(single_game)(predict, param_list, 0.005, inv_temp)
             for _ in range(num_games)
         )
 
@@ -65,6 +65,7 @@ if __name__ == "__main__":
     # |--------------------|
 
     old_params = tree_zeros_like(params)
+    oldp_params = tree_zeros_like(params)
     momentum = tree_zeros_like(params)
     inv_temp = 1
     experiences = []
@@ -93,7 +94,7 @@ if __name__ == "__main__":
     game_loss.block_until_ready()
     print("Start training")
 
-    stop_trace()
+    # stop_trace()
 
     for epoch in range(EPOCHS):
         # Decrease randomness up to MAX_INV_TEMP
@@ -104,21 +105,22 @@ if __name__ == "__main__":
         else:
             WD = WD2
             STEP_SIZE = STEP_SIZE2
-            inv_temp = min(epoch, MAX_INV_TEMP)
-        #            if inv_temp is not None:
-        #                print("Switch to deterministic")
-        #            inv_temp = None
+            inv_temp = None
 
         # Set old_params to params except in the beginning
         if epoch % RESET_EPOCH_PER == 1 and epoch > 2:
             print("old_params <- params; momentum <- 0")
+            oldp_params = old_params.copy()
             old_params = params.copy()
             momentum = tree_zeros_like(params)
 
         # Play some games with `old_params` and `params`
         start_time = time.time()
         list_of_new_exp = play_games(
-            pred_q_values, params, old_params, 50 + 100 * (epoch == 0), inv_temp
+            pred_q_values,
+            (params, old_params, oldp_params),
+            50 + 100 * (epoch == 0),
+            inv_temp,
         )
         new_exp = [item for sublist in list_of_new_exp for item in sublist]
         time_new_exp = time.time() - start_time
@@ -129,8 +131,9 @@ if __name__ == "__main__":
 
         # Gradient Descent
         start_time = time.time()
-        for _ in range(128):  # 64*256 = 16'384
-            batch = sample_from(experiences, k=256)
+        for _ in range(64):  # 64*256 = 16'384
+            # batch = sample_all(experiences)
+            batch = sample_from(experiences, k=512)
             dlgrad = dloss(params, batch, old_params, sbkey)
             params, momentum = lion_step(STEP_SIZE, params, dlgrad, momentum, wd=WD)
             key, sbkey = jr.split(key)
@@ -143,7 +146,7 @@ if __name__ == "__main__":
         # Print progress
         if epoch % 5 == 0 or epoch == EPOCHS - 1:
             big_batch = sample_all(experiences)
-            game_loss = jnp.mean(all_loss(params, big_batch, old_params, sbkey))
+            game_loss = jnp.mean(loss(params, big_batch, old_params, sbkey))
             key, sbkey = jr.split(key)
             leaves, treedef = tree_flatten(params)
             jnp.savez("all_params", *leaves)
@@ -195,7 +198,9 @@ if __name__ == "__main__":
     print(mygame.winning())
 
     for x in range(mygame.n_players):
-        print(f"{mygame.get_player_tokens_int(x):<3}|{print_cards_from_one_hot(mygame.player_cards[x])}")
+        print(
+            f"{mygame.get_player_tokens_int(x):<3}|{print_cards_from_one_hot(mygame.player_cards[x])}"
+        )
 
     embedd = params[0][0]
     embedded_game_states = jnp.array(

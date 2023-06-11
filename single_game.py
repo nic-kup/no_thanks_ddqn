@@ -4,13 +4,13 @@ import numpy.random as npr
 from jax.nn import sigmoid
 
 
-def single_game(predict, params, old_params, reward_factor=1.0, inv_temp=5.0):
+def single_game(predict, param_list, reward_factor=1.0, inv_temp=5.0):
     """Given `predict` function automatically plays no thanks"""
     new_exp = []
     mygame = NoThanks(4, 11, reward_factor=reward_factor)
     mygame.start_game()
     game_going = 1
-    old_player = npr.randint(0, 4)
+    player_param = npr.randint(0, len(param_list), size=4)
     player_store = [
         (mygame.get_things_perspective(player), 1) for player in range(mygame.n_players)
     ]
@@ -21,10 +21,9 @@ def single_game(predict, params, old_params, reward_factor=1.0, inv_temp=5.0):
 
         # Get game state (from Ps perspective)
         state = mygame.get_things()
-        if cur_player == old_player:
-            q_vals = predict(old_params, state.reshape((1, -1))).ravel()
-        else:
-            q_vals = predict(params, state.reshape((1, -1))).ravel()
+        q_vals = predict(
+            param_list[player_param[cur_player]], state.reshape((1, -1))
+        ).ravel()
 
         new_exp.append([*player_store[cur_player], state, 1.0])
 

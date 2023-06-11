@@ -35,36 +35,32 @@ del mygame
 def build_model():
     """Builds the Dueling DDQN model."""
     return serial(
-        Dense(512),
-        Relu,
-        Dense(512),
-        Relu,
-        Dense(64),
-        Relu,
-        FanOut(2),
-        parallel(Dense(1), Dense(2)),
-        parallel(Sigmoid, Identity),
-        Dueling(),
+        Linear(256),
+        ResDense(512),
+        FanOut(3),
+        parallel(
+            serial(
+                FanOut(2),
+                parallel(Linear(1), Linear(2)),
+                Dueling(),
+            ),
+            Identity,
+            serial(Linear(GAME_STATE_SIZE), Relu),
+        ),
     )
 
 
 def build_model():
     """Builds the Dueling DDQN model."""
     return serial(
-        Linear(128),
-        ResDense(256),
-        ResDense(256),
-        ResDense(256),
-        FanOut(3),
-        parallel(
-            serial(
-                FanOut(2),
-                parallel(Dense(1), Dense(2)),
-                Dueling(),
-            ),
-            Identity,
-            serial(Linear(GAME_STATE_SIZE), Relu),
-        ),
+        Linear(256),
+        Relu,
+        Linear(64),
+        Relu,
+        FanOut(2),
+        parallel(Linear(1), Linear(2)),
+        parallel(Sigmoid, Identity),
+        Dueling(),
     )
 
 
@@ -89,7 +85,7 @@ def loss(params, batch, old_params, key=None):
 
     # Hardcoded discount
     target = r + 0.98 * done * old_next_q_values_sel
-    return jnp.mean(jnp.square(q_values - target))
+    return jnp.mean((4.0 - 3.0 * done) * jnp.square(q_values - target))
 
 
 # Initialize model and prediction function
@@ -97,6 +93,8 @@ init_random_params, predict = build_model()
 
 # Compile the predict function
 predict = jit(predict)
+
+# loss: the predicted Q value from the state without prediction should also be the same
 
 
 @jit
@@ -110,10 +108,6 @@ def all_loss(params, batch, old_params, key=None):
 
     embedd = params[0][0]
     unbedd = params[-1][-1][0][0]
-
-    loss_bedd = 2.0 * jnp.mean(
-        jnp.square(jnp.dot(embedd, unbedd) - jnp.eye(GAME_STATE_SIZE))
-    )
 
     loss_sn = jnp.mean(jnp.mean(jnp.square(jnp.dot(sn, embedd) - hat_sn), axis=-1))
 
@@ -130,4 +124,4 @@ def all_loss(params, batch, old_params, key=None):
     target = r + 0.98 * done * old_next_q_values_sel
     # Bellman Loss with extra weighting on terminal episodes
     loss_con = jnp.mean((3.0 - 2.0 * done) * jnp.square(q_values - target))
-    return loss_con + loss_sn + loss_bedd
+    return loss_con + loss_sn

@@ -23,6 +23,7 @@ class NoThanks:
         self.high_card = high_card
         self.low_card = low_card
         self.n_cards = len(self.cards)
+        self.n_cards_rm = self.n_cards - removed_cards
 
         self.removed_cards = removed_cards
         self.init_tokens_per_player = 11
@@ -173,7 +174,7 @@ class NoThanks:
         """Get game state from cur_player perspective"""
         return np.concatenate(
             (
-                np.array(one_hot(len(self.cards), self.n_cards)),
+                np.array(one_hot(len(self.cards), self.n_cards_rm)),
                 np.array(
                     one_hot(self.center_tokens, self.init_tokens_per_player * 4 + 1)
                 ),
@@ -186,7 +187,7 @@ class NoThanks:
         """Get game state from k's perspective"""
         return np.concatenate(
             (
-                np.array(one_hot(len(self.cards), self.n_cards)),
+                np.array(one_hot(len(self.cards), self.n_cards_rm)),
                 np.array(
                     one_hot(self.center_tokens, self.init_tokens_per_player * 4 + 1)
                 ),

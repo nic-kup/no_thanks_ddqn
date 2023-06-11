@@ -57,8 +57,7 @@ def SoLU(axis=-1):
     def apply_fun(params, inputs, **kwargs):
         return solu(inputs, axis=axis)
 
-
-SoLU = SoLU()
+    return init_fun, apply_fun
 
 
 def Softmax(axis=-1):
@@ -71,6 +70,8 @@ def Softmax(axis=-1):
     def apply_fun(params, inputs, **kwargs):
         return softmax(inputs, axis=axis)
 
+    return init_fun, apply_fun
+
 
 def Reshape(new_shape):
     """Reshape"""
@@ -80,6 +81,8 @@ def Reshape(new_shape):
 
     def apply_fun(params, inputs, **kwargs):
         return inputs.reshape((-1, *new_shape))
+
+    return init_fun, apply_fun
 
 
 def PrintShape():
@@ -131,26 +134,23 @@ def ExpandDims(axis=-1):
     return init_fun, apply_fun
 
 
-def ResDense(size):
+def ResDense(size, W_init=glorot_normal()):
     """Residual Dense Layer with LayerNorm"""
-    init_i, apply = Dense(size)
 
     def init_fun(rng, input_shape):
         ki, ko = jr.split(rng)
+        W_i = W_init(ki, (input_shape[-1], size))
+        W_o = W_init(ko, (size, input_shape[-1]))
+        return input_shape, (W_i, W_o)
 
-        i_shape, i_params = init_i(ki, input_shape)
-
-        init_o = Dense(input_shape[-1])[0]
-        o_params = init_o(ko, i_shape)[1]
-        return input_shape, (i_params, o_params)
-
+    @jit
     def apply_fun(params, inputs, **kwargs):
-        i_params, o_params = params
+        W_i, W_o = params
 
-        stream = apply(i_params, inputs)
-        stream = solu(stream)
-        stream = apply(o_params, stream)
-        return stream + inputs
+        x = inputs @ W_i
+        x = solu(x)
+        x = x @ W_o
+        return x + inputs
 
     return init_fun, apply_fun
 

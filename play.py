@@ -4,13 +4,15 @@ import numpy as np
 import numpy.random as npr
 
 from jax import jit
+import jax.numpy as jnp
 
-from jax.nn import sigmoid
+from jax.nn import sigmoid, relu
 from jax.tree_util import tree_flatten, tree_unflatten
 from jax.random import PRNGKey
 
 import time
 
+import seaborn as sns
 import matplotlib.pyplot as plt
 
 from game import NoThanks
@@ -54,7 +56,7 @@ if __name__ == "__main__":
     mygame = NoThanks(4, 11)
     mygame.start_game()
     game_going = 1
-    game_states = [[] for i in range(4)]
+    game_states = []
     time_states = [[] for i in range(4)]
 
     time.sleep(0.5)
@@ -65,7 +67,7 @@ if __name__ == "__main__":
         cur_player = mygame.player_turn
         print(f"Player {cur_player}" + ", Your Turn!" * (cur_player == player_order))
         state = mygame.get_things().reshape((1, -1))
-        game_states[cur_player].append(state.squeeze())
+        game_states.append(state.squeeze())
         time_states[cur_player].append(turn_num)
 
         turn_num += 1
@@ -110,13 +112,23 @@ if __name__ == "__main__":
         )
 
     embedd = params[0][0]
-    embedded_game_states = [0, 0, 0, 0]
-    for i in range(4):
-        embedded_game_states[i] = np.array([np.dot(x, embedd) for x in game_states[i]])
 
-    for j in range(5):
-        plt.title(f"Bla {j}")
-        for i in range(4):
-            plt.plot(time_states[i], embedded_game_states[i][:, j], label=i)
-        plt.legend()
+    U, S, Vh = jnp.linalg.svd(embedd)
+    U_abmax = np.max(np.abs(U))
+    Uembedd = U @ embedd
+
+    sns.heatmap(np.array(game_states), cmap="GnBu")
+    plt.show()
+    
+    player_game_states = [0, 0, 0, 0]
+    for i in range(4):
+        player_game_states[i] = np.array([np.dot(game_states[t], embedd) for t in time_states[i]])
+    
+    for i in range(4):
+        plt.title(f"Activation layer one player {i}")
+        print(player_game_states[i].shape)
+        pgs_maxab = np.max(np.abs(player_game_states[i]))
+        sns.heatmap(player_game_states[i], vmin=-pgs_maxab, vmax=pgs_maxab, cmap="RdYlBu")
+        plt.show()
+        sns.heatmap(relu(player_game_states[i]), cmap="GnBu")
         plt.show()
