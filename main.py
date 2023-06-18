@@ -20,14 +20,14 @@ from sample_helpers import sample_from, sample_all
 if __name__ == "__main__":
     # Hyper parameters
     STEP_SIZE1 = 3e-5
-    STEP_SIZE2 = 2e-5
-    WD1 = 0.75
-    WD2 = 1.0
+    STEP_SIZE2 = 1e-5
+    WD1 = 0.5
+    WD2 = 0.75
     CONTINUE_TRAINING_RUN = False
-    EPOCHS = 500
+    EPOCHS = 1050
     RESET_EPOCH_PER = 100
-    MAX_INV_TEMP = 60
-    MAX_REPLAY_BUFFER = 40000
+    MAX_INV_TEMP = 100
+    MAX_REPLAY_BUFFER = 50000
 
     # Initializing a game / Getting inputs size
     mygame = NoThanks(4, 11)
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     SEED = 4
     key = jr.PRNGKey(SEED)
     key, sbkey = jr.split(key)
-    _, params = init_random_params(sbkey, (-1, INPUT_SIZE))
+    params = init_random_params(sbkey, (-1, INPUT_SIZE))[1]
     key, sbkey = jr.split(key)
 
     experiences = []
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     def play_games(predict, param_list, num_games, inv_temp):
         """Play num_games games with given parameters and epsilon"""
         return Parallel(n_jobs=-1, backend="threading")(
-            delayed(single_game)(predict, param_list, 0.005, inv_temp)
+            delayed(single_game)(predict, param_list, 0., inv_temp)
             for _ in range(num_games)
         )
 
@@ -65,7 +65,8 @@ if __name__ == "__main__":
     # |--------------------|
 
     old_params = tree_zeros_like(params)
-    oldp_params = tree_zeros_like(params)
+    oldp_params = init_random_params(sbkey, (-1, INPUT_SIZE))[1]
+    key, sbkey = jr.split(key)
     momentum = tree_zeros_like(params)
     inv_temp = 1
     experiences = []
@@ -105,7 +106,7 @@ if __name__ == "__main__":
         else:
             WD = WD2
             STEP_SIZE = STEP_SIZE2
-            inv_temp = None
+            inv_temp = 2 * MAX_INV_TEMP
 
         # Set old_params to params except in the beginning
         if epoch % RESET_EPOCH_PER == 1 and epoch > 2:
@@ -131,9 +132,8 @@ if __name__ == "__main__":
 
         # Gradient Descent
         start_time = time.time()
-        for _ in range(64):  # 64*256 = 16'384
-            # batch = sample_all(experiences)
-            batch = sample_from(experiences, k=512)
+        for _ in range(512):  # 64*256 = 16'384
+            batch = sample_from(experiences, k=256)
             dlgrad = dloss(params, batch, old_params, sbkey)
             params, momentum = lion_step(STEP_SIZE, params, dlgrad, momentum, wd=WD)
             key, sbkey = jr.split(key)

@@ -14,6 +14,8 @@ from jax import jit
 from jax.lax import stop_gradient
 from custom_layers import (
     MultiHeadAttn,
+    PrintShape,
+    FakeAttention,
     ExpandDims,
     SoLU,
     Flatten,
@@ -32,30 +34,41 @@ GAME_STATE_SIZE = len(mygame.get_things())
 del mygame
 
 
+partial_predict = jit(serial(Linear(128), ResDense(16), ResDense(16))[1])
+
+
+
 def build_model():
     """Builds the Dueling DDQN model."""
     return serial(
-        Linear(256),
-        ResDense(512),
-        FanOut(3),
+        Linear(100),
+        ResDense(200),
+        ResDense(200),
+        ResDense(200),
+        FanOut(2),
         parallel(
             serial(
+                Linear(50),
+                Relu,
                 FanOut(2),
                 parallel(Linear(1), Linear(2)),
                 Dueling(),
             ),
+            Linear(100),
             Identity,
-            serial(Linear(GAME_STATE_SIZE), Relu),
         ),
     )
+
 
 
 def build_model():
     """Builds the Dueling DDQN model."""
     return serial(
-        Linear(256),
-        Relu,
         Linear(64),
+        FakeAttention(),
+        Relu,
+        Linear(32),
+        FakeAttention(),
         Relu,
         FanOut(2),
         parallel(Linear(1), Linear(2)),
@@ -64,7 +77,7 @@ def build_model():
     )
 
 
-# @jit
+@jit
 def loss(params, batch, old_params, key=None):
     """Loss function for predictions"""
     s, a, r, sn, done = batch
@@ -100,14 +113,13 @@ predict = jit(predict)
 @jit
 def all_loss(params, batch, old_params, key=None):
     s, a, r, sn, done = batch
-    new_q_values, hat_sn, _ = predict(params, s)
-    nnew_q_values, hat_snn, _ = predict(params, sn)
-    old_q_values, ohat_snn, _ = predict(old_params, sn)
+    new_q_values, hat_sn = predict(params, s)
+    nnew_q_values, hat_snn = predict(params, sn)
+    old_q_values, ohat_snn = predict(old_params, sn)
 
     # Next state prediction + consistency
 
     embedd = params[0][0]
-    unbedd = params[-1][-1][0][0]
 
     loss_sn = jnp.mean(jnp.mean(jnp.square(jnp.dot(sn, embedd) - hat_sn), axis=-1))
 

@@ -36,7 +36,7 @@ def Dueling():
 
     @jit
     def apply_fun(params, inputs, **kwargs):
-        discounted_action = inputs[1] - jnp.max(inputs[1], axis=-1).reshape((-1, 1))
+        discounted_action = inputs[1] - jnp.mean(inputs[1], axis=-1).reshape((-1, 1))
         return inputs[0] + discounted_action
 
     return init_fun, apply_fun
@@ -148,9 +148,31 @@ def ResDense(size, W_init=glorot_normal()):
         W_i, W_o = params
 
         x = inputs @ W_i
-        x = solu(x)
+        x = relu(x)
         x = x @ W_o
         return x + inputs
+
+    return init_fun, apply_fun
+
+
+def FakeAttention(W_init=glorot_normal()):
+    """Transformer for non-time series inputs"""
+    def init_fun(rng, input_shape):
+        kq, kk, kv = jr.split(rng, 3)
+        Wq = W_init(kq, (input_shape[-1], input_shape[-1]))
+        Wk = W_init(kk, (input_shape[-1], input_shape[-1]))
+        Wv = W_init(kv, (input_shape[-1], input_shape[-1]))
+        return input_shape, (Wq, Wk, Wv)
+
+    @jit
+    def apply_fun(params, inputs, **kwargs):
+        Wq, Wk, Wv = params
+        qvec = jnp.dot(inputs, Wq)
+        kvec = jnp.dot(inputs, Wk)
+
+        qk = softmax(jnp.einsum("...i, ...j->...ij", qvec, kvec))
+        return inputs + jnp.einsum("...i,...ij->...j", inputs, qk @ Wv)
+
 
     return init_fun, apply_fun
 

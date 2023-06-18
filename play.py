@@ -6,7 +6,7 @@ import numpy.random as npr
 from jax import jit
 import jax.numpy as jnp
 
-from jax.nn import sigmoid, relu
+from jax.nn import sigmoid, relu, softmax
 from jax.tree_util import tree_flatten, tree_unflatten
 from jax.random import PRNGKey
 
@@ -16,7 +16,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 from game import NoThanks
-from model import predict, init_random_params
+from model import predict, init_random_params, partial_predict
+from custom_layers import solu
 
 
 def print_cards_from_one_hot(one_hot_of_cards):
@@ -119,16 +120,74 @@ if __name__ == "__main__":
 
     sns.heatmap(np.array(game_states), cmap="GnBu")
     plt.show()
-    
+
     player_game_states = [0, 0, 0, 0]
+    pn_game_states = [0, 0, 0, 0]
     for i in range(4):
-        player_game_states[i] = np.array([np.dot(game_states[t], embedd) for t in time_states[i]])
-    
+        player_game_states[i] = np.array(
+            [np.dot(game_states[t], embedd) for t in time_states[i]]
+        ).squeeze()
+        pn_game_states[i] = np.array(
+            [predict(params, game_states[t].reshape((1,-1)))[1].squeeze() for t in time_states[i]]
+        ).squeeze()
+
     for i in range(4):
-        plt.title(f"Activation layer one player {i}")
-        print(player_game_states[i].shape)
-        pgs_maxab = np.max(np.abs(player_game_states[i]))
-        sns.heatmap(player_game_states[i], vmin=-pgs_maxab, vmax=pgs_maxab, cmap="RdYlBu")
+        plt.title(f"{i}: Embedding")
+        x = player_game_states[i]
+        print(x.shape)
+        pgs_maxab = np.max(np.abs(x))
+        sns.heatmap(
+            x, vmin=-pgs_maxab, vmax=pgs_maxab, cmap="RdYlBu"
+        )
         plt.show()
-        sns.heatmap(relu(player_game_states[i]), cmap="GnBu")
+
+        x = relu(x @ params[2][0])
+        plt.title(f"{i}: Softmax MLP1")
+        sns.heatmap(x, cmap="GnBu")
         plt.show()
+
+        x = relu(x @ params[4][0])
+        plt.title(f"{i}: Softmax MLP1")
+        sns.heatmap(x, cmap="GnBu")
+        plt.show()
+
+        x = relu(x @ params[6][0])
+        plt.title(f"{i}: Softmax MLP1")
+        sns.heatmap(x, cmap="GnBu")
+        plt.show()
+
+        """
+        xp = relu(x @ params[1][0])
+        plt.title(f"{i}: Softmax MLP1")
+        sns.heatmap(xp, cmap="GnBu")
+        plt.show()
+
+        sns.heatmap((xp @ params[1][1] @ embedd.T).T, cmap = "RdYlBu")
+        plt.show()
+
+        x = x + xp @ params[1][1]
+
+        xp = relu(x @ params[2][0])
+        plt.title(f"{i}: Softmax MLP2")
+        sns.heatmap(xp, cmap="GnBu")
+        plt.show()
+
+        sns.heatmap((xp @ params[2][1] @ embedd.T).T, cmap = "RdYlBu")
+        plt.show()
+
+        x = x + xp @ params[2][1]
+        xp = relu(x @ params[3][0])
+        plt.title(f"{i}: Softmax MLP3")
+        sns.heatmap(xp, cmap="GnBu")
+        plt.show()
+
+        state_diff = ((pn_game_states[i] - player_game_states[i]) @ embedd.T).squeeze()
+        plt.title(f"{i}: sn+1 hat - sn")
+        sns.heatmap(
+            state_diff,
+            cmap="RdYlBu",
+            vmin = -np.max(np.abs(state_diff)),
+            vmax = np.max(np.abs(state_diff)),
+        )
+        plt.show()
+        """

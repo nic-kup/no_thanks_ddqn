@@ -20,7 +20,6 @@ if __name__ == "__main__":
     leaves = [npz_files[npz_files.files[i]] for i in range(len(npz_files.files))]
 
     embedd = leaves[0]
-    unbedd = leaves[-1]
 
     U, S, Vh = jnp.linalg.svd(embedd)
 
@@ -31,25 +30,6 @@ if __name__ == "__main__":
 
     sns.heatmap(U, cmap=cmap, vmin=-U_abmax, vmax=U_abmax)
     plt.show()
-
-    emunbedd = np.dot(embedd, unbedd)
-    enun_max = np.max(np.abs(emunbedd))
-
-    print(np.diag(emunbedd))
-
-    sns.heatmap(emunbedd, vmin=-enun_max, vmax=enun_max, cmap=cmap)
-    plt.show()
-
-    for i in range(1):
-        resd1 = leaves[i * 2 + 1]
-        resd2 = leaves[i * 2 + 2]
-
-        # Does this even make sense???
-        rest = np.dot(np.dot(np.dot(embedd, resd1), resd2), unbedd)
-        rest_avmax = np.max(np.abs(rest))
-        plt.title(f"{i+1}th MLP (don't interpret too much!)")
-        plt.imshow(rest, cmap=cmap, vmin=-rest_avmax, vmax=rest_avmax)
-        plt.show()
 
     #    plt.title("state => value")
     #    plt.plot(np.dot(leaves[-5].T, unbedd).T)
