@@ -1,0 +1,356 @@
+2025-02-25 10:51:34,370 - DDQN-NoThanks - INFO - Starting training with configuration:
+2025-02-25 10:51:34,370 - DDQN-NoThanks - INFO -   step_size_initial: 0.0003
+2025-02-25 10:51:34,370 - DDQN-NoThanks - INFO -   step_size_final: 8e-05
+2025-02-25 10:51:34,370 - DDQN-NoThanks - INFO -   weight_decay_initial: 0.25
+2025-02-25 10:51:34,370 - DDQN-NoThanks - INFO -   weight_decay_final: 0.5
+2025-02-25 10:51:34,370 - DDQN-NoThanks - INFO -   polyak_tau: 0.99
+2025-02-25 10:51:34,370 - DDQN-NoThanks - INFO -   epochs: 299
+2025-02-25 10:51:34,370 - DDQN-NoThanks - INFO -   reset_target_every: 40
+2025-02-25 10:51:34,370 - DDQN-NoThanks - INFO -   max_inv_temp: 100
+2025-02-25 10:51:34,370 - DDQN-NoThanks - INFO -   max_replay_buffer: 50000
+2025-02-25 10:51:34,370 - DDQN-NoThanks - INFO -   prioritized_replay_start: 20
+2025-02-25 10:51:34,370 - DDQN-NoThanks - INFO -   alpha_initial: 0.4
+2025-02-25 10:51:34,370 - DDQN-NoThanks - INFO -   alpha_final: 0.6
+2025-02-25 10:51:34,370 - DDQN-NoThanks - INFO -   beta_initial: 0.4
+2025-02-25 10:51:34,370 - DDQN-NoThanks - INFO -   beta_final: 0.7
+2025-02-25 10:51:34,370 - DDQN-NoThanks - INFO -   continue_training: False
+2025-02-25 10:51:34,370 - DDQN-NoThanks - INFO -   seed: 4
+2025-02-25 10:51:34,370 - DDQN-NoThanks - INFO - State representation size: 414
+2025-02-25 10:51:35,212 - DDQN-NoThanks - INFO - Starting a new training run
+2025-02-25 10:52:34,341 - DDQN-NoThanks - INFO - Starting training with configuration:
+2025-02-25 10:52:34,341 - DDQN-NoThanks - INFO -   step_size_initial: 0.0003
+2025-02-25 10:52:34,341 - DDQN-NoThanks - INFO -   step_size_final: 8e-05
+2025-02-25 10:52:34,341 - DDQN-NoThanks - INFO -   weight_decay_initial: 0.25
+2025-02-25 10:52:34,341 - DDQN-NoThanks - INFO -   weight_decay_final: 0.5
+2025-02-25 10:52:34,341 - DDQN-NoThanks - INFO -   polyak_tau: 0.99
+2025-02-25 10:52:34,341 - DDQN-NoThanks - INFO -   epochs: 299
+2025-02-25 10:52:34,341 - DDQN-NoThanks - INFO -   reset_target_every: 40
+2025-02-25 10:52:34,341 - DDQN-NoThanks - INFO -   max_inv_temp: 100
+2025-02-25 10:52:34,341 - DDQN-NoThanks - INFO -   max_replay_buffer: 50000
+2025-02-25 10:52:34,341 - DDQN-NoThanks - INFO -   prioritized_replay_start: 20
+2025-02-25 10:52:34,341 - DDQN-NoThanks - INFO -   alpha_initial: 0.4
+2025-02-25 10:52:34,341 - DDQN-NoThanks - INFO -   alpha_final: 0.6
+2025-02-25 10:52:34,341 - DDQN-NoThanks - INFO -   beta_initial: 0.4
+2025-02-25 10:52:34,341 - DDQN-NoThanks - INFO -   beta_final: 0.7
+2025-02-25 10:52:34,341 - DDQN-NoThanks - INFO -   continue_training: False
+2025-02-25 10:52:34,341 - DDQN-NoThanks - INFO -   seed: 4
+2025-02-25 10:52:34,341 - DDQN-NoThanks - INFO - State representation size: 414
+2025-02-25 10:52:35,179 - DDQN-NoThanks - INFO - Starting a new training run
+2025-02-25 10:53:33,872 - DDQN-NoThanks - INFO - Starting training with configuration:
+2025-02-25 10:53:33,872 - DDQN-NoThanks - INFO -   step_size_initial: 0.0003
+2025-02-25 10:53:33,872 - DDQN-NoThanks - INFO -   step_size_final: 8e-05
+2025-02-25 10:53:33,872 - DDQN-NoThanks - INFO -   weight_decay_initial: 0.25
+2025-02-25 10:53:33,872 - DDQN-NoThanks - INFO -   weight_decay_final: 0.5
+2025-02-25 10:53:33,872 - DDQN-NoThanks - INFO -   polyak_tau: 0.99
+2025-02-25 10:53:33,872 - DDQN-NoThanks - INFO -   epochs: 299
+2025-02-25 10:53:33,872 - DDQN-NoThanks - INFO -   reset_target_every: 40
+2025-02-25 10:53:33,872 - DDQN-NoThanks - INFO -   max_inv_temp: 100
+2025-02-25 10:53:33,872 - DDQN-NoThanks - INFO -   max_replay_buffer: 50000
+2025-02-25 10:53:33,872 - DDQN-NoThanks - INFO -   prioritized_replay_start: 20
+2025-02-25 10:53:33,872 - DDQN-NoThanks - INFO -   alpha_initial: 0.4
+2025-02-25 10:53:33,872 - DDQN-NoThanks - INFO -   alpha_final: 0.6
+2025-02-25 10:53:33,872 - DDQN-NoThanks - INFO -   beta_initial: 0.4
+2025-02-25 10:53:33,872 - DDQN-NoThanks - INFO -   beta_final: 0.7
+2025-02-25 10:53:33,872 - DDQN-NoThanks - INFO -   continue_training: False
+2025-02-25 10:53:33,872 - DDQN-NoThanks - INFO -   seed: 4
+2025-02-25 10:53:33,872 - DDQN-NoThanks - INFO - State representation size: 414
+2025-02-25 10:53:34,746 - DDQN-NoThanks - INFO - Starting a new training run
+2025-02-25 10:53:44,979 - DDQN-NoThanks - INFO - Epoch   0: |new_exp|=10243 | game_time= 6.77s | train_time= 3.46s
+2025-02-25 10:53:45,399 - DDQN-NoThanks - INFO - Evaluation at epoch   0: Loss=   0.0014 | Buffer size=10243
+2025-02-25 10:53:53,876 - DDQN-NoThanks - INFO - Epoch   1: |new_exp|=9793  | game_time= 6.31s | train_time= 2.14s
+2025-02-25 10:53:55,804 - DDQN-NoThanks - INFO - Epoch   2: |new_exp|=246   | game_time= 0.16s | train_time= 1.76s
+2025-02-25 10:53:57,743 - DDQN-NoThanks - INFO - Epoch   3: |new_exp|=247   | game_time= 0.15s | train_time= 1.78s
+2025-02-25 10:53:59,683 - DDQN-NoThanks - INFO - Epoch   4: |new_exp|=237   | game_time= 0.15s | train_time= 1.79s
+2025-02-25 10:54:02,028 - DDQN-NoThanks - INFO - Epoch   5: |new_exp|=236   | game_time= 0.15s | train_time= 2.19s
+2025-02-25 10:54:02,878 - DDQN-NoThanks - INFO - Evaluation at epoch   5: Loss=   0.0048 | Buffer size=21002
+2025-02-25 10:54:04,323 - DDQN-NoThanks - INFO - Epoch   6: |new_exp|=232   | game_time= 0.16s | train_time= 1.28s
+2025-02-25 10:54:05,764 - DDQN-NoThanks - INFO - Epoch   7: |new_exp|=221   | game_time= 0.14s | train_time= 1.30s
+2025-02-25 10:54:07,231 - DDQN-NoThanks - INFO - Epoch   8: |new_exp|=222   | game_time= 0.15s | train_time= 1.31s
+2025-02-25 10:54:08,679 - DDQN-NoThanks - INFO - Epoch   9: |new_exp|=237   | game_time= 0.16s | train_time= 1.28s
+2025-02-25 10:54:11,347 - DDQN-NoThanks - INFO - Epoch  10: |new_exp|=669   | game_time= 0.43s | train_time= 2.24s
+2025-02-25 10:54:12,215 - DDQN-NoThanks - INFO - Evaluation at epoch  10: Loss=   0.0042 | Buffer size=22583
+2025-02-25 10:54:13,673 - DDQN-NoThanks - INFO - Epoch  11: |new_exp|=239   | game_time= 0.15s | train_time= 1.30s
+2025-02-25 10:54:15,134 - DDQN-NoThanks - INFO - Epoch  12: |new_exp|=224   | game_time= 0.15s | train_time= 1.31s
+2025-02-25 10:54:16,550 - DDQN-NoThanks - INFO - Epoch  13: |new_exp|=217   | game_time= 0.14s | train_time= 1.27s
+2025-02-25 10:54:18,019 - DDQN-NoThanks - INFO - Epoch  14: |new_exp|=243   | game_time= 0.16s | train_time= 1.30s
+2025-02-25 10:54:20,397 - DDQN-NoThanks - INFO - Epoch  15: |new_exp|=225   | game_time= 0.15s | train_time= 2.22s
+2025-02-25 10:54:21,199 - DDQN-NoThanks - INFO - Evaluation at epoch  15: Loss=   0.0049 | Buffer size=23731
+2025-02-25 10:54:22,655 - DDQN-NoThanks - INFO - Epoch  16: |new_exp|=236   | game_time= 0.15s | train_time= 1.30s
+2025-02-25 10:54:24,101 - DDQN-NoThanks - INFO - Epoch  17: |new_exp|=226   | game_time= 0.15s | train_time= 1.30s
+2025-02-25 10:54:25,546 - DDQN-NoThanks - INFO - Epoch  18: |new_exp|=227   | game_time= 0.15s | train_time= 1.29s
+2025-02-25 10:54:26,993 - DDQN-NoThanks - INFO - Epoch  19: |new_exp|=217   | game_time= 0.15s | train_time= 1.30s
+2025-02-25 10:54:29,633 - DDQN-NoThanks - INFO - Epoch  20: |new_exp|=652   | game_time= 0.42s | train_time= 2.22s
+2025-02-25 10:54:30,551 - DDQN-NoThanks - INFO - Evaluation at epoch  20: Loss=   0.0050 | Buffer size=25289
+2025-02-25 10:55:09,387 - DDQN-NoThanks - INFO - Epoch  21: |new_exp|=206   | game_time= 0.13s | train_time=38.70s
+2025-02-25 10:55:48,618 - DDQN-NoThanks - INFO - Epoch  22: |new_exp|=226   | game_time= 0.15s | train_time=39.08s
+2025-02-25 10:56:28,219 - DDQN-NoThanks - INFO - Epoch  23: |new_exp|=217   | game_time= 0.15s | train_time=39.45s
+2025-02-25 10:57:07,727 - DDQN-NoThanks - INFO - Epoch  24: |new_exp|=216   | game_time= 0.14s | train_time=39.37s
+2025-02-25 10:57:48,792 - DDQN-NoThanks - INFO - Epoch  25: |new_exp|=215   | game_time= 0.14s | train_time=40.92s
+2025-02-25 10:57:49,754 - DDQN-NoThanks - INFO - Evaluation at epoch  25: Loss=   0.0047 | Buffer size=26369
+2025-02-25 10:58:30,338 - DDQN-NoThanks - INFO - Epoch  26: |new_exp|=214   | game_time= 0.15s | train_time=40.43s
+2025-02-25 10:59:11,164 - DDQN-NoThanks - INFO - Epoch  27: |new_exp|=211   | game_time= 0.13s | train_time=40.69s
+2025-02-25 10:59:51,787 - DDQN-NoThanks - INFO - Epoch  28: |new_exp|=208   | game_time= 0.14s | train_time=40.48s
+2025-02-25 11:00:32,814 - DDQN-NoThanks - INFO - Epoch  29: |new_exp|=213   | game_time= 0.13s | train_time=40.89s
+2025-02-25 11:01:16,096 - DDQN-NoThanks - INFO - Epoch  30: |new_exp|=699   | game_time= 0.44s | train_time=42.84s
+2025-02-25 11:01:17,099 - DDQN-NoThanks - INFO - Evaluation at epoch  30: Loss=   0.0047 | Buffer size=27914
+2025-02-25 11:02:00,416 - DDQN-NoThanks - INFO - Epoch  31: |new_exp|=209   | game_time= 0.14s | train_time=43.18s
+2025-02-25 11:02:43,317 - DDQN-NoThanks - INFO - Epoch  32: |new_exp|=213   | game_time= 0.14s | train_time=42.76s
+2025-02-25 11:03:26,408 - DDQN-NoThanks - INFO - Epoch  33: |new_exp|=218   | game_time= 0.15s | train_time=42.93s
+DDQN-NT - INFO - Starting training with configuration:
+DDQN-NT - INFO -   step_size_initial: 0.0003
+DDQN-NT - INFO -   step_size_final: 8e-05
+DDQN-NT - INFO -   weight_decay_initial: 0.25
+DDQN-NT - INFO -   weight_decay_final: 0.5
+DDQN-NT - INFO -   polyak_tau: 0.99
+DDQN-NT - INFO -   epochs: 299
+DDQN-NT - INFO -   reset_target_every: 40
+DDQN-NT - INFO -   max_inv_temp: 100
+DDQN-NT - INFO -   max_replay_buffer: 50000
+DDQN-NT - INFO -   prioritized_replay_start: 20
+DDQN-NT - INFO -   alpha_initial: 0.4
+DDQN-NT - INFO -   alpha_final: 0.6
+DDQN-NT - INFO -   beta_initial: 0.4
+DDQN-NT - INFO -   beta_final: 0.7
+DDQN-NT - INFO -   priority_cache_size: 8192
+DDQN-NT - INFO -   continue_training: False
+DDQN-NT - INFO -   seed: 4
+DDQN-NT - INFO - State representation size: 414
+DDQN-NT - INFO - Starting a new training run
+DDQN-NT - INFO - Epoch   0: |new_exp|=10125 | game_time= 6.63s | train_time= 2.48s
+DDQN-NT - INFO - Evaluation at epoch   0: Loss=   0.0016 | Buffer size=10125
+DDQN-NT - INFO - Epoch   1: |new_exp|=10060 | game_time= 6.46s | train_time= 1.63s
+DDQN-NT - INFO - Epoch   2: |new_exp|=246   | game_time= 0.16s | train_time= 1.30s
+DDQN-NT - INFO - Epoch   3: |new_exp|=233   | game_time= 0.16s | train_time= 1.35s
+DDQN-NT - INFO - Epoch   4: |new_exp|=246   | game_time= 0.16s | train_time= 1.31s
+DDQN-NT - INFO - Epoch   5: |new_exp|=211   | game_time= 0.14s | train_time= 1.51s
+DDQN-NT - INFO - Evaluation at epoch   5: Loss=   0.0046 | Buffer size=21121
+DDQN-NT - INFO - Epoch   6: |new_exp|=226   | game_time= 0.15s | train_time= 0.95s
+DDQN-NT - INFO - Epoch   7: |new_exp|=248   | game_time= 0.16s | train_time= 0.94s
+DDQN-NT - INFO - Epoch   8: |new_exp|=234   | game_time= 0.16s | train_time= 0.95s
+DDQN-NT - INFO - Epoch   9: |new_exp|=230   | game_time= 0.15s | train_time= 0.93s
+DDQN-NT - INFO - Epoch  10: |new_exp|=688   | game_time= 0.45s | train_time= 1.50s
+DDQN-NT - INFO - Evaluation at epoch  10: Loss=   0.0043 | Buffer size=22747
+DDQN-NT - INFO - Epoch  11: |new_exp|=240   | game_time= 0.16s | train_time= 0.96s
+DDQN-NT - INFO - Epoch  12: |new_exp|=226   | game_time= 0.15s | train_time= 0.94s
+DDQN-NT - INFO - Epoch  13: |new_exp|=250   | game_time= 0.16s | train_time= 0.96s
+DDQN-NT - INFO - Epoch  14: |new_exp|=244   | game_time= 0.16s | train_time= 0.95s
+DDQN-NT - INFO - Epoch  15: |new_exp|=231   | game_time= 0.15s | train_time= 1.53s
+DDQN-NT - INFO - Evaluation at epoch  15: Loss=   0.0034 | Buffer size=23938
+DDQN-NT - INFO - Epoch  16: |new_exp|=245   | game_time= 0.17s | train_time= 0.97s
+DDQN-NT - INFO - Epoch  17: |new_exp|=226   | game_time= 0.15s | train_time= 0.94s
+DDQN-NT - INFO - Epoch  18: |new_exp|=226   | game_time= 0.15s | train_time= 1.00s
+DDQN-NT - INFO - Epoch  19: |new_exp|=228   | game_time= 0.15s | train_time= 0.96s
+DDQN-NT - INFO - Epoch  20: |new_exp|=674   | game_time= 0.43s | train_time= 1.52s
+DDQN-NT - INFO - Evaluation at epoch  20: Loss=   0.0039 | Buffer size=25537
+DDQN-NT - INFO - Epoch  21: |new_exp|=214   | game_time= 0.15s | train_time=39.44s
+DDQN-NT - INFO - Epoch  22: |new_exp|=208   | game_time= 0.14s | train_time=39.13s
+DDQN-NT - INFO - Epoch  23: |new_exp|=228   | game_time= 0.15s | train_time=39.46s
+DDQN-NT - INFO - Epoch  24: |new_exp|=235   | game_time= 0.15s | train_time=39.82s
+DDQN-NT - INFO - Epoch  25: |new_exp|=230   | game_time= 0.15s | train_time=41.08s
+DDQN-NT - INFO - Evaluation at epoch  25: Loss=   0.0041 | Buffer size=26652
+DDQN-NT - INFO - Epoch  26: |new_exp|=219   | game_time= 0.15s | train_time=40.29s
+DDQN-NT - INFO - Epoch  27: |new_exp|=217   | game_time= 0.14s | train_time=40.64s
+DDQN-NT - INFO - Epoch  28: |new_exp|=216   | game_time= 0.15s | train_time=41.34s
+DDQN-NT - INFO - Epoch  29: |new_exp|=209   | game_time= 0.14s | train_time=40.58s
+DDQN-NT - INFO - Epoch  30: |new_exp|=625   | game_time= 0.42s | train_time=42.52s
+DDQN-NT - INFO - Evaluation at epoch  30: Loss=   0.0042 | Buffer size=28138
+DDQN-NT - INFO - Epoch  31: |new_exp|=229   | game_time= 0.16s | train_time=42.31s
+DDQN-NT - INFO - Epoch  32: |new_exp|=217   | game_time= 0.15s | train_time=42.65s
+DDQN-NT - INFO - Epoch  33: |new_exp|=213   | game_time= 0.14s | train_time=42.85s
+DDQN-NT - INFO - Epoch  34: |new_exp|=223   | game_time= 0.15s | train_time=41.82s
+DDQN-NT - INFO - Epoch  35: |new_exp|=209   | game_time= 0.14s | train_time=44.30s
+DDQN-NT - INFO - Evaluation at epoch  35: Loss=   0.0038 | Buffer size=29229
+DDQN-NT - INFO - Epoch  36: |new_exp|=215   | game_time= 0.15s | train_time=43.86s
+DDQN-NT - INFO - Epoch  37: |new_exp|=203   | game_time= 0.13s | train_time=44.66s
+DDQN-NT - INFO - Epoch  38: |new_exp|=222   | game_time= 0.15s | train_time=45.65s
+DDQN-NT - INFO - Epoch  39: |new_exp|=211   | game_time= 0.13s | train_time=46.11s
+DDQN-NT - INFO - Epoch  40: |new_exp|=667   | game_time= 0.42s | train_time=47.00s
+DDQN-NT - INFO - Evaluation at epoch  40: Loss=   0.0036 | Buffer size=30747
+DDQN-NT - INFO - Saving previous target network for diversity in self-play
+DDQN-NT - INFO - Epoch  41: |new_exp|=210   | game_time= 0.14s | train_time=47.27s
+DDQN-NT - INFO - Epoch  42: |new_exp|=220   | game_time= 0.15s | train_time=47.19s
+DDQN-NT - INFO - Epoch  43: |new_exp|=200   | game_time= 0.14s | train_time=47.55s
+DDQN-NT - INFO - Epoch  44: |new_exp|=202   | game_time= 0.14s | train_time=47.91s
+DDQN-NT - INFO - Epoch  45: |new_exp|=203   | game_time= 0.13s | train_time=48.50s
+DDQN-NT - INFO - Evaluation at epoch  45: Loss=   0.0034 | Buffer size=31782
+DDQN-NT - INFO - Epoch  46: |new_exp|=201   | game_time= 0.14s | train_time=47.71s
+DDQN-NT - INFO - Epoch  47: |new_exp|=204   | game_time= 0.14s | train_time=47.25s
+DDQN-NT - INFO - Epoch  48: |new_exp|=197   | game_time= 0.14s | train_time=48.94s
+DDQN-NT - INFO - Epoch  49: |new_exp|=208   | game_time= 0.16s | train_time=50.17s
+DDQN-NT - INFO - Starting training with configuration:
+DDQN-NT - INFO -   step_size_initial: 0.0003
+DDQN-NT - INFO -   step_size_final: 8e-05
+DDQN-NT - INFO -   weight_decay_initial: 0.25
+DDQN-NT - INFO -   weight_decay_final: 0.5
+DDQN-NT - INFO -   polyak_tau: 0.99
+DDQN-NT - INFO -   epochs: 299
+DDQN-NT - INFO -   reset_target_every: 40
+DDQN-NT - INFO -   max_inv_temp: 100
+DDQN-NT - INFO -   max_replay_buffer: 50000
+DDQN-NT - INFO -   prioritized_replay_start: 20
+DDQN-NT - INFO -   alpha_initial: 0.4
+DDQN-NT - INFO -   alpha_final: 0.6
+DDQN-NT - INFO -   priority_cache_size: 8192
+DDQN-NT - INFO -   kl_weight_initial: 0.05
+DDQN-NT - INFO -   kl_weight_final: 0.2
+DDQN-NT - INFO -   continue_training: False
+DDQN-NT - INFO -   seed: 4
+DDQN-NT - INFO - State representation size: 414
+DDQN-NT - INFO - Starting a new training run
+DDQN-NT - INFO - Epoch   0: |new_exp|=10444 | game_time= 6.95s | train_time= 2.51s
+DDQN-NT - INFO - Evaluation at epoch   0: Loss=   0.0019 | Buffer size=10444
+DDQN-NT - INFO - Epoch   1: |new_exp|=9929  | game_time= 6.57s | train_time= 1.59s
+DDQN-NT - INFO - Epoch   2: |new_exp|=236   | game_time= 0.15s | train_time= 1.27s
+DDQN-NT - INFO - Epoch   3: |new_exp|=245   | game_time= 0.16s | train_time= 1.24s
+DDQN-NT - INFO - Epoch   4: |new_exp|=241   | game_time= 0.15s | train_time= 1.25s
+DDQN-NT - INFO - Epoch   5: |new_exp|=234   | game_time= 0.15s | train_time= 1.47s
+DDQN-NT - INFO - Evaluation at epoch   5: Loss=   0.0041 | Buffer size=21329
+DDQN-NT - INFO - Epoch   6: |new_exp|=233   | game_time= 0.15s | train_time= 0.92s
+DDQN-NT - INFO - Epoch   7: |new_exp|=235   | game_time= 0.15s | train_time= 0.91s
+DDQN-NT - INFO - Epoch   8: |new_exp|=235   | game_time= 0.15s | train_time= 0.91s
+DDQN-NT - INFO - Epoch   9: |new_exp|=232   | game_time= 0.16s | train_time= 0.89s
+DDQN-NT - INFO - Epoch  10: |new_exp|=685   | game_time= 0.43s | train_time= 1.49s
+DDQN-NT - INFO - Evaluation at epoch  10: Loss=   0.0048 | Buffer size=22949
+DDQN-NT - INFO - Epoch  11: |new_exp|=220   | game_time= 0.14s | train_time= 0.92s
+DDQN-NT - INFO - Epoch  12: |new_exp|=238   | game_time= 0.15s | train_time= 0.91s
+DDQN-NT - INFO - Epoch  13: |new_exp|=219   | game_time= 0.15s | train_time= 0.93s
+DDQN-NT - INFO - Epoch  14: |new_exp|=210   | game_time= 0.14s | train_time= 0.91s
+DDQN-NT - INFO - Epoch  15: |new_exp|=204   | game_time= 0.14s | train_time= 1.52s
+DDQN-NT - INFO - Evaluation at epoch  15: Loss=   0.0046 | Buffer size=24040
+DDQN-NT - INFO - Epoch  16: |new_exp|=219   | game_time= 0.15s | train_time= 0.91s
+DDQN-NT - INFO - Epoch  17: |new_exp|=223   | game_time= 0.15s | train_time= 0.93s
+DDQN-NT - INFO - Epoch  18: |new_exp|=224   | game_time= 0.15s | train_time= 0.92s
+DDQN-NT - INFO - Epoch  19: |new_exp|=240   | game_time= 0.15s | train_time= 0.94s
+DDQN-NT - INFO - Epoch  20: |new_exp|=681   | game_time= 0.43s | train_time= 1.48s
+DDQN-NT - INFO - Evaluation at epoch  20: Loss=   0.0047 | Buffer size=25627
+DDQN-NT - INFO - Epoch  21: |new_exp|=217   | game_time= 0.14s | train_time=39.33s
+DDQN-NT - INFO - Epoch  22: |new_exp|=212   | game_time= 0.14s | train_time=39.88s
+DDQN-NT - INFO - Epoch  23: |new_exp|=209   | game_time= 0.15s | train_time=39.83s
+DDQN-NT - INFO - Epoch  24: |new_exp|=218   | game_time= 0.14s | train_time=41.74s
+DDQN-NT - INFO - Epoch  25: |new_exp|=219   | game_time= 0.15s | train_time=41.48s
+DDQN-NT - INFO - Evaluation at epoch  25: Loss=   0.0048 | Buffer size=26702
+DDQN-NT - INFO - Starting training with configuration:
+DDQN-NT - INFO -   step_size_initial: 0.0003
+DDQN-NT - INFO -   step_size_final: 8e-05
+DDQN-NT - INFO -   weight_decay_initial: 0.25
+DDQN-NT - INFO -   weight_decay_final: 0.5
+DDQN-NT - INFO -   polyak_tau: 0.99
+DDQN-NT - INFO -   epochs: 299
+DDQN-NT - INFO -   reset_target_every: 40
+DDQN-NT - INFO -   max_inv_temp: 100
+DDQN-NT - INFO -   max_replay_buffer: 50000
+DDQN-NT - INFO -   kl_weight_initial: 0.05
+DDQN-NT - INFO -   kl_weight_final: 0.2
+DDQN-NT - INFO -   continue_training: False
+DDQN-NT - INFO -   seed: 4
+DDQN-NT - INFO - State representation size: 414
+DDQN-NT - INFO - Starting a new training run
+DDQN-NT - INFO - Epoch   0: |new_exp|=10264 | game_time= 6.78s | train_time= 4.54s
+DDQN-NT - INFO - Evaluation at epoch   0: Loss=   0.0019 | Buffer size=10264
+DDQN-NT - INFO - Epoch   1: |new_exp|=9831  | game_time= 6.37s | train_time= 2.45s
+DDQN-NT - INFO - Epoch   2: |new_exp|=256   | game_time= 0.16s | train_time= 2.13s
+DDQN-NT - INFO - Epoch   3: |new_exp|=232   | game_time= 0.16s | train_time= 2.10s
+DDQN-NT - INFO - Epoch   4: |new_exp|=236   | game_time= 0.16s | train_time= 2.12s
+DDQN-NT - INFO - Epoch   5: |new_exp|=235   | game_time= 0.15s | train_time= 2.81s
+DDQN-NT - INFO - Evaluation at epoch   5: Loss=   0.0037 | Buffer size=21054
+DDQN-NT - INFO - Epoch   6: |new_exp|=239   | game_time= 0.15s | train_time= 1.42s
+DDQN-NT - INFO - Epoch   7: |new_exp|=235   | game_time= 0.16s | train_time= 1.41s
+DDQN-NT - INFO - Epoch   8: |new_exp|=244   | game_time= 0.16s | train_time= 1.41s
+DDQN-NT - INFO - Epoch   9: |new_exp|=234   | game_time= 0.16s | train_time= 1.42s
+DDQN-NT - INFO - Epoch  10: |new_exp|=657   | game_time= 0.42s | train_time= 2.83s
+DDQN-NT - INFO - Evaluation at epoch  10: Loss=   0.0042 | Buffer size=22663
+DDQN-NT - INFO - Epoch  11: |new_exp|=233   | game_time= 0.15s | train_time= 1.41s
+DDQN-NT - INFO - Epoch  12: |new_exp|=235   | game_time= 0.16s | train_time= 1.41s
+DDQN-NT - INFO - Epoch  13: |new_exp|=226   | game_time= 0.15s | train_time= 1.41s
+DDQN-NT - INFO - Epoch  14: |new_exp|=215   | game_time= 0.15s | train_time= 1.42s
+DDQN-NT - INFO - Epoch  15: |new_exp|=233   | game_time= 0.18s | train_time= 2.86s
+DDQN-NT - INFO - Evaluation at epoch  15: Loss=   0.0046 | Buffer size=23805
+DDQN-NT - INFO - Epoch  16: |new_exp|=231   | game_time= 0.18s | train_time= 1.46s
+DDQN-NT - INFO - Epoch  17: |new_exp|=211   | game_time= 0.14s | train_time= 1.43s
+DDQN-NT - INFO - Epoch  18: |new_exp|=240   | game_time= 0.16s | train_time= 1.42s
+DDQN-NT - INFO - Epoch  19: |new_exp|=218   | game_time= 0.15s | train_time= 1.42s
+DDQN-NT - INFO - Epoch  20: |new_exp|=658   | game_time= 0.43s | train_time= 2.84s
+DDQN-NT - INFO - Evaluation at epoch  20: Loss=   0.0046 | Buffer size=25363
+DDQN-NT - INFO - Epoch  21: |new_exp|=212   | game_time= 0.14s | train_time= 1.46s
+DDQN-NT - INFO - Epoch  22: |new_exp|=215   | game_time= 0.14s | train_time= 1.43s
+DDQN-NT - INFO - Epoch  23: |new_exp|=218   | game_time= 0.15s | train_time= 1.43s
+DDQN-NT - INFO - Epoch  24: |new_exp|=232   | game_time= 0.16s | train_time= 1.43s
+DDQN-NT - INFO - Epoch  25: |new_exp|=241   | game_time= 0.15s | train_time= 2.86s
+DDQN-NT - INFO - Evaluation at epoch  25: Loss=   0.0051 | Buffer size=26481
+DDQN-NT - INFO - Epoch  26: |new_exp|=229   | game_time= 0.15s | train_time= 1.45s
+DDQN-NT - INFO - Epoch  27: |new_exp|=222   | game_time= 0.15s | train_time= 1.43s
+DDQN-NT - INFO - Epoch  28: |new_exp|=219   | game_time= 0.15s | train_time= 1.44s
+DDQN-NT - INFO - Epoch  29: |new_exp|=213   | game_time= 0.15s | train_time= 1.44s
+DDQN-NT - INFO - Epoch  30: |new_exp|=643   | game_time= 0.43s | train_time= 2.87s
+DDQN-NT - INFO - Evaluation at epoch  30: Loss=   0.0049 | Buffer size=28007
+DDQN-NT - INFO - Epoch  31: |new_exp|=213   | game_time= 0.14s | train_time= 1.45s
+DDQN-NT - INFO - Epoch  32: |new_exp|=223   | game_time= 0.15s | train_time= 1.45s
+DDQN-NT - INFO - Epoch  33: |new_exp|=213   | game_time= 0.14s | train_time= 1.44s
+DDQN-NT - INFO - Epoch  34: |new_exp|=227   | game_time= 0.15s | train_time= 1.45s
+DDQN-NT - INFO - Epoch  35: |new_exp|=219   | game_time= 0.15s | train_time= 2.86s
+DDQN-NT - INFO - Evaluation at epoch  35: Loss=   0.0055 | Buffer size=29102
+DDQN-NT - INFO - Epoch  36: |new_exp|=202   | game_time= 0.14s | train_time= 1.41s
+DDQN-NT - INFO - Epoch  37: |new_exp|=204   | game_time= 0.14s | train_time= 1.43s
+DDQN-NT - INFO - Epoch  38: |new_exp|=223   | game_time= 0.15s | train_time= 1.45s
+DDQN-NT - INFO - Epoch  39: |new_exp|=198   | game_time= 0.14s | train_time= 1.45s
+DDQN-NT - INFO - Epoch  40: |new_exp|=643   | game_time= 0.43s | train_time= 2.87s
+DDQN-NT - INFO - Evaluation at epoch  40: Loss=   0.0057 | Buffer size=30572
+DDQN-NT - INFO - Saving previous target network for diversity in self-play
+DDQN-NT - INFO - Epoch  41: |new_exp|=225   | game_time= 0.15s | train_time= 1.42s
+DDQN-NT - INFO - Epoch  42: |new_exp|=205   | game_time= 0.14s | train_time= 1.43s
+DDQN-NT - INFO - Epoch  43: |new_exp|=206   | game_time= 0.14s | train_time= 1.43s
+DDQN-NT - INFO - Epoch  44: |new_exp|=216   | game_time= 0.15s | train_time= 1.42s
+DDQN-NT - INFO - Epoch  45: |new_exp|=207   | game_time= 0.14s | train_time= 2.86s
+DDQN-NT - INFO - Evaluation at epoch  45: Loss=   0.0059 | Buffer size=31631
+DDQN-NT - INFO - Epoch  46: |new_exp|=209   | game_time= 0.14s | train_time= 1.45s
+DDQN-NT - INFO - Epoch  47: |new_exp|=213   | game_time= 0.14s | train_time= 1.44s
+DDQN-NT - INFO - Epoch  48: |new_exp|=217   | game_time= 0.15s | train_time= 1.44s
+DDQN-NT - INFO - Epoch  49: |new_exp|=209   | game_time= 0.14s | train_time= 1.44s
+DDQN-NT - INFO - Epoch  50: |new_exp|=632   | game_time= 0.42s | train_time= 2.87s
+DDQN-NT - INFO - Evaluation at epoch  50: Loss=   0.0064 | Buffer size=33111
+DDQN-NT - INFO - Epoch  51: |new_exp|=225   | game_time= 0.15s | train_time= 1.42s
+DDQN-NT - INFO - Epoch  52: |new_exp|=208   | game_time= 0.14s | train_time= 1.40s
+DDQN-NT - INFO - Epoch  53: |new_exp|=213   | game_time= 0.14s | train_time= 1.41s
+DDQN-NT - INFO - Epoch  54: |new_exp|=214   | game_time= 0.15s | train_time= 1.40s
+DDQN-NT - INFO - Epoch  55: |new_exp|=205   | game_time= 0.14s | train_time= 2.83s
+DDQN-NT - INFO - Evaluation at epoch  55: Loss=   0.0063 | Buffer size=34176
+DDQN-NT - INFO - Epoch  56: |new_exp|=211   | game_time= 0.15s | train_time= 1.44s
+DDQN-NT - INFO - Epoch  57: |new_exp|=208   | game_time= 0.14s | train_time= 1.48s
+DDQN-NT - INFO - Epoch  58: |new_exp|=203   | game_time= 0.15s | train_time= 1.45s
+DDQN-NT - INFO - Epoch  59: |new_exp|=213   | game_time= 0.15s | train_time= 1.44s
+DDQN-NT - INFO - Epoch  60: |new_exp|=611   | game_time= 0.41s | train_time= 2.90s
+DDQN-NT - INFO - Evaluation at epoch  60: Loss=   0.0058 | Buffer size=35622
+DDQN-NT - INFO - Epoch  61: |new_exp|=202   | game_time= 0.14s | train_time= 1.48s
+DDQN-NT - INFO - Epoch  62: |new_exp|=201   | game_time= 0.15s | train_time= 1.46s
+DDQN-NT - INFO - Epoch  63: |new_exp|=199   | game_time= 0.14s | train_time= 1.47s
+DDQN-NT - INFO - Epoch  64: |new_exp|=207   | game_time= 0.14s | train_time= 1.47s
+DDQN-NT - INFO - Epoch  65: |new_exp|=211   | game_time= 0.15s | train_time= 2.94s
+DDQN-NT - INFO - Evaluation at epoch  65: Loss=   0.0054 | Buffer size=36642
+DDQN-NT - INFO - Epoch  66: |new_exp|=210   | game_time= 0.15s | train_time= 1.46s
+DDQN-NT - INFO - Epoch  67: |new_exp|=209   | game_time= 0.15s | train_time= 1.42s
+DDQN-NT - INFO - Epoch  68: |new_exp|=216   | game_time= 0.15s | train_time= 1.42s
+DDQN-NT - INFO - Epoch  69: |new_exp|=206   | game_time= 0.14s | train_time= 1.43s
+DDQN-NT - INFO - Epoch  70: |new_exp|=617   | game_time= 0.44s | train_time= 2.86s
+DDQN-NT - INFO - Evaluation at epoch  70: Loss=   0.0052 | Buffer size=38100
+DDQN-NT - INFO - Epoch  71: |new_exp|=202   | game_time= 0.14s | train_time= 1.37s
+DDQN-NT - INFO - Epoch  72: |new_exp|=206   | game_time= 0.14s | train_time= 1.41s
+DDQN-NT - INFO - Epoch  73: |new_exp|=205   | game_time= 0.14s | train_time= 1.40s
+DDQN-NT - INFO - Epoch  74: |new_exp|=202   | game_time= 0.14s | train_time= 1.44s
+DDQN-NT - INFO - Epoch  75: |new_exp|=212   | game_time= 0.15s | train_time= 2.90s
+DDQN-NT - INFO - Evaluation at epoch  75: Loss=   0.0048 | Buffer size=39127
+DDQN-NT - INFO - Epoch  76: |new_exp|=204   | game_time= 0.14s | train_time= 1.41s
+DDQN-NT - INFO - Epoch  77: |new_exp|=209   | game_time= 0.15s | train_time= 1.41s
+DDQN-NT - INFO - Epoch  78: |new_exp|=205   | game_time= 0.14s | train_time= 1.42s
+DDQN-NT - INFO - Epoch  79: |new_exp|=200   | game_time= 0.14s | train_time= 1.39s
+DDQN-NT - INFO - Epoch  80: |new_exp|=625   | game_time= 0.40s | train_time= 2.85s
+DDQN-NT - INFO - Evaluation at epoch  80: Loss=      nan | Buffer size=40570
+DDQN-NT - INFO - Saving previous target network for diversity in self-play
+DDQN-NT - INFO - Epoch  81: |new_exp|=414   | game_time= 0.23s | train_time= 1.39s
+DDQN-NT - INFO - Epoch  82: |new_exp|=369   | game_time= 0.21s | train_time= 1.41s
+DDQN-NT - INFO - Epoch  83: |new_exp|=460   | game_time= 0.28s | train_time= 1.40s
+DDQN-NT - INFO - Epoch  84: |new_exp|=422   | game_time= 0.24s | train_time= 1.36s
+DDQN-NT - INFO - Epoch  85: |new_exp|=296   | game_time= 0.18s | train_time= 2.82s
+DDQN-NT - INFO - Evaluation at epoch  85: Loss=      nan | Buffer size=42531
+DDQN-NT - INFO - Epoch  86: |new_exp|=498   | game_time= 0.27s | train_time= 1.36s
+DDQN-NT - INFO - Epoch  87: |new_exp|=324   | game_time= 0.21s | train_time= 1.37s
+DDQN-NT - INFO - Epoch  88: |new_exp|=296   | game_time= 0.19s | train_time= 1.38s

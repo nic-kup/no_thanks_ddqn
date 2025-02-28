@@ -36,8 +36,20 @@ def Dueling():
 
     @jit
     def apply_fun(params, inputs, **kwargs):
-        discounted_action = inputs[1] - jnp.mean(inputs[1], axis=-1).reshape((-1, 1))
-        return inputs[0] + discounted_action
+        # Advanced advantage calculation with better normalization
+        # Center advantages around zero for better stability
+        # Subtract mean (per batch element) to ensure advantages sum to zero for each state
+        advantage = inputs[1] - jnp.mean(inputs[1], axis=-1, keepdims=True)
+        
+        # Optional: Apply full standardization (not just mean centering)
+        # This adds another level of normalization similar to the advantage calculation in loss()
+        # advantage = advantage / (jnp.std(advantage, axis=-1, keepdims=True) + 1e-8)
+        
+        # Use value function as state value estimate
+        state_value = inputs[0]
+        
+        # Return Q(s,a) = V(s) + A(s,a)
+        return state_value + advantage
 
     return init_fun, apply_fun
 
@@ -157,6 +169,7 @@ def ResDense(size, W_init=glorot_normal()):
 
 def FakeAttention(W_init=glorot_normal()):
     """Transformer for non-time series inputs"""
+
     def init_fun(rng, input_shape):
         kq, kk, kv = jr.split(rng, 3)
         Wq = W_init(kq, (input_shape[-1], input_shape[-1]))
@@ -172,7 +185,6 @@ def FakeAttention(W_init=glorot_normal()):
 
         qk = softmax(jnp.einsum("...i, ...j->...ij", qvec, kvec))
         return inputs + jnp.einsum("...i,...ij->...j", inputs, qk @ Wv)
-
 
     return init_fun, apply_fun
 
@@ -207,50 +219,79 @@ def Linear(out_dim, W_init=glorot_normal(), b_init=normal()):
     return init_fun, apply_fun
 
 
-def SingleAttention(out_dim, inner_dim):
-    """Single Headed attention for single token dim"""
-    init_q, apply_q = Dense(inner_dim)
-    init_k, apply_k = Dense(inner_dim)
-    init_v, apply_v = Dense(out_dim)
-    init_out, apply_out = Dense(out_dim)
+def serial(*layers):
+    """Combinator for composing multiple layers
+    Args:
+    *layers: a sequence of layers, each an (init_fun, apply_fun) pair.
+
+    Returns:
+    A new layer, meaning an (init_fun, apply_fun) pair, representing the serial
+    composition of the given sequence of layers."""
+    nlayers = len(layers)
+    init_funs, apply_funs = zip(*layers)
 
     def init_fun(rng, input_shape):
-        k1, k2, k3, k4 = jr.split(rng, 4)
-        _, q_parm = init_q(k1, (input_shape))
-        _, k_parm = init_k(k2, (input_shape))
-        _, v_parm = init_v(k3, (input_shape))
-        _, out_parm = init_out(k4, (input_shape))
-        return (input_shape[:-1], out_dim), (
-            q_parm,
-            k_parm,
-            v_parm,
-            out_parm,
-        )
+        params = []
+        for init_fun in init_funs:
+            rng, layer_rng = jr.split(rng)
+            input_shape, param = init_fun(layer_rng, input_shape)
+            params.append(param)
+        return input_shape, params
 
-    @jit
     def apply_fun(params, inputs, **kwargs):
-        q_params, k_params, v_params, out_params = params
-
-        Q = (
-            apply_q(q_params, q_inputs)
-            .reshape(-1, n_cont_out, num_heads, d_k_in)
-            .swapaxes(1, 2)
-        )
-        K = (
-            apply_k(k_params, inputs)
-            .reshape(-1, n_cont_in, num_heads, d_k_in)
-            .swapaxes(1, 2)
-        )
-        V = (
-            apply_v(v_params, inputs)
-            .reshape(-1, n_cont_in, num_heads, d_k_out)
-            .swapaxes(1, 2)
-        )
-
-        attn = attention((Q, K, V)).reshape((-1, n_cont_out, d_model_out))
-        return apply_out(out_params, attn)
+        rng = kwargs.pop("rng", None)
+        rngs = jr.split(rng, nlayers) if rng is not None else (None,) * nlayers
+        for fun, param, rng in zip(apply_funs, params, rngs):
+            inputs = fun(param, inputs, rng=rng, **kwargs)
+        return inputs
 
     return init_fun, apply_fun
+
+
+# def SingleAttention(out_dim, inner_dim):
+#     """Single Headed attention for single token dim"""
+#     init_q, apply_q = Dense(inner_dim)
+#     init_k, apply_k = Dense(inner_dim)
+#     init_v, apply_v = Dense(out_dim)
+#     init_out, apply_out = Dense(out_dim)
+
+#     def init_fun(rng, input_shape):
+#         k1, k2, k3, k4 = jr.split(rng, 4)
+#         _, q_parm = init_q(k1, (input_shape))
+#         _, k_parm = init_k(k2, (input_shape))
+#         _, v_parm = init_v(k3, (input_shape))
+#         _, out_parm = init_out(k4, (input_shape))
+#         return (input_shape[:-1], out_dim), (
+#             q_parm,
+#             k_parm,
+#             v_parm,
+#             out_parm,
+#         )
+
+#     @jit
+#     def apply_fun(params, inputs, **kwargs):
+#         q_params, k_params, v_params, out_params = params
+
+#         Q = (
+#             apply_q(q_params, q_inputs)
+#             .reshape(-1, n_cont_out, num_heads, d_k_in)
+#             .swapaxes(1, 2)
+#         )
+#         K = (
+#             apply_k(k_params, inputs)
+#             .reshape(-1, n_cont_in, num_heads, d_k_in)
+#             .swapaxes(1, 2)
+#         )
+#         V = (
+#             apply_v(v_params, inputs)
+#             .reshape(-1, n_cont_in, num_heads, d_k_out)
+#             .swapaxes(1, 2)
+#         )
+
+#         attn = attention((Q, K, V)).reshape((-1, n_cont_out, d_model_out))
+#         return apply_out(out_params, attn)
+
+#     return init_fun, apply_fun
 
 
 def MultiHeadAttn(n_context, d_model, num_heads):

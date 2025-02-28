@@ -113,6 +113,7 @@ if __name__ == "__main__":
         )
 
     embedd = params[0][0]
+    embedd_b = params[0][1]
 
     U, S, Vh = jnp.linalg.svd(embedd)
     U_abmax = np.max(np.abs(U))
@@ -125,11 +126,11 @@ if __name__ == "__main__":
     pn_game_states = [0, 0, 0, 0]
     for i in range(4):
         player_game_states[i] = np.array(
-            [np.dot(game_states[t], embedd) for t in time_states[i]]
+            [np.dot(game_states[t], embedd) + embedd_b for t in time_states[i]]
         ).squeeze()
-        pn_game_states[i] = np.array(
-            [predict(params, game_states[t].reshape((1,-1)))[1].squeeze() for t in time_states[i]]
-        ).squeeze()
+#        pn_game_states[i] = np.array(
+#            [predict(params, game_states[t].reshape((1,-1)))[1].squeeze() for t in time_states[i]]
+#        ).squeeze()
 
     for i in range(4):
         plt.title(f"{i}: Embedding")
@@ -141,12 +142,13 @@ if __name__ == "__main__":
         )
         plt.show()
 
-        x = relu(x @ params[2][0])
+        x = relu(x @ params[2][0] + params[2][1])
         plt.title(f"{i}: Softmax MLP1")
         sns.heatmap(x, cmap="GnBu")
         plt.show()
 
-        x = relu(x @ params[4][0])
+        """
+        x = relu(x @ params[4][0] + params[4][1])
         plt.title(f"{i}: Softmax MLP1")
         sns.heatmap(x, cmap="GnBu")
         plt.show()
@@ -156,7 +158,6 @@ if __name__ == "__main__":
         sns.heatmap(x, cmap="GnBu")
         plt.show()
 
-        """
         xp = relu(x @ params[1][0])
         plt.title(f"{i}: Softmax MLP1")
         sns.heatmap(xp, cmap="GnBu")
